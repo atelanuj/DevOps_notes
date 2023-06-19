@@ -45,8 +45,8 @@ spec:
         command: ["bin/bash", "-c", "sleep 10000"]
         volumeMounts:
         - name: mypd
-          mountPath: "/tmp/persistent"
+          mountPath: "/tmp/persistent"        #mount path inside the containers
       volumes:
         - name: mypd
-          persistentVolumeClaim:
-            claimName: myebsvolclaim
+          persistentVolumeClaim:         #persistant volume added 
+            claimName: myebsvolclaim  
