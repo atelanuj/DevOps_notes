@@ -1,0 +1,14 @@
+kind: Service                             # Defines to create Service type Object
+apiVersion: v1
+metadata:
+  name: demoservice
+spec:
+  type: NodePort # Specifies the service type i.e ClusterIP or NodePort
+  selector: 
+    name: deployment # Apply this service to any pods which has the specific label
+  ports:
+    - port: 80          # serviceport exposed                     
+      targetPort: 80    # specified pod port                      
+      nodePort: 31205   # specified nodePods port                     
+                      
+                                         

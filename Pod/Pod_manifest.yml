@@ -1,0 +1,24 @@
+#POD manifest for kubernetes
+--- 
+apiVersion: v1
+kind: Pod
+metadata:
+ name: testpod
+ annotations:
+  description: Created By Anuj
+ labels: 
+  app: myapp
+  type: front-end
+spec:
+ restartPolicy: Never #possible values Always, OnFailure, and Never. The default value is Always.
+ nodeSelector: 
+    hardware: t2.medium  #label that you gave to the node
+ containers:
+ - name: c00
+   image: ubuntu:latest
+   ports:
+   - name: http
+     containerPort: 80
+   - name: tcp
+     containerPort: 8080
+  

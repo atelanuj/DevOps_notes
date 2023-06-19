@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: demo-loadbalancer-service
+spec:
+  type: LoadBalancer
+  selector:
+  app: demo-myapp
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8765        #this will expose the outside world    http://192.0.2.89:8765 
+    targetport: 80   #this is the expose port of the pod.
+  loadBalancerIP: <YOUR_LOAD_BALANCER_IP> #if you dont mention the IP address the k8s will automatically allocates it to the load balancer.
+    

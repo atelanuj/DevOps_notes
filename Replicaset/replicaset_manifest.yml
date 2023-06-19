@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: myReplicaset     #name of the replicaset
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:  #set-based selector tells the controller which pods to watch/belongs to 
+    - {key: myname, operator: In, values: [anuj, aryan, devops]}
+    - {key: myapp, operator: NotIn, values: [front-end, database]} 
+  template:
+    metadata:
+      name: myreplicaset
+      labels:
+        myname: anuj  #myname = anuj is selected as a base pod from above set
+    spec:
+      containers:
+      - name: c00
+        image: ubuntu
+        command: ["/bin/bash", "-c", "while true; do echo Hello; sleep 5; done" ]
+
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: myReplicaset      #replicaset name should be lower-case
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: front-end     #label-based or equality-based selector tells the replicaset which pods to watch/belongs to 
+  template:
+    metadata:
+      name: testpod
+      labels: 
+        tier: front-end    #this should be same as selector
+    spec:
+      containers:
+      - name: mynginx
+        image: nginx:latest

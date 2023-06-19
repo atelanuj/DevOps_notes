@@ -1,0 +1,34 @@
+--- #pod minfest for more than one containers.
+apiVersion: v1
+kind: pod
+metadata: 
+ name: multiconPod
+ annotations:
+  description: creating a multi container pod
+ labels:
+  appname: myapp      #label-1
+  type: front-end #label-2
+  env: dev
+
+spec:
+ containers:
+ # - to represent group
+ - name: c00
+   image: ubuntu:latest
+   command: ["#!/bin/bash", "-c", "while true", do echo Anuj, "sleep 5", "done"]
+   ports:
+   - name: http
+     containerPort: 80
+   - name: https
+     containerport: 443
+ 
+ # - to represent group
+ - name: c01
+   image: nginx:latest
+   command: ["#!/bin/bash", "-c", "while true", do echo Anuj2, "sleep 5", "done"]
+   ports:
+   - name: http
+     containerPort: 80
+   - name: https
+     containerPort: 443
+restartPolicy: Never

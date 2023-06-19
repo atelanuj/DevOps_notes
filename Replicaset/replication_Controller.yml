@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: replicationController
+metadata: 
+ name: myReplicas    #name of the replication Controller
+spec:
+ replicas: 2         #numbers of replicas you want to create        
+ Selector: 
+  appname: myapp     #tells the controller which pods to watch/belongs to 
+ template:           #A template from which the replication Controller will create the pods.
+  metadata:
+   name: testpod     #name of the pod which is created 
+   labels:
+    appname: myapp    #label to the pod created by replication Controller 
+  spec:                          ##it should be same as selector
+   containers:
+   - name: c00                    
+     image: ubuntu
+     ports:
+     - name: http
+       containerPort: 80
+     - name: https
+       containerPort: 443
+restartPolicy: Never
