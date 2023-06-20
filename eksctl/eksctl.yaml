@@ -2,6 +2,7 @@
 #EKS Creation
 #########################################################################################################################
 # Jenkins is the master/control plan on which this yaml file will run
+# eksctl create nodegroup -f cluster-managed.yaml
 
 ---
 apiVersion: eksctl.io/v1alpha5
