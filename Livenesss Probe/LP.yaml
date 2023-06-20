@@ -10,16 +10,16 @@ metadata:
 spec:
   containers:
   - name: liveness
-    image: ubuntu
+    image: ubuntu   
     args:
     - /bin/sh
     - -c
-    - touch /tmp/healthy; sleep 1000
+    - touch /tmp/healthy; sleep 1000 
     livenessProbe:                                          
       exec:
-        command:                                         
+        command:                      #command tobe run inside the container to check health                   
         - cat                
         - /tmp/healthy
-      initialDelaySeconds: 5          
-      periodSeconds: 5                                 
-      timeoutSeconds: 30
+      initialDelaySeconds: 5          #wait for pods to completely create running then start health check
+      periodSeconds: 5                #periodic interval after which the health check starts in this case 5sec
+      timeoutSeconds: 30              #wait for response. 0/1 for null it will start new command
