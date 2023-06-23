@@ -1,5 +1,8 @@
 ---
 # https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
+# two application runnig on same DNS but different paths
+# with one ingress you can forward requests to multiple application services 
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,11 +10,18 @@ metadata:
   namespace: kubernetes-configmap-reload
 spec:
   rules:
-  - host: kubernetes-configmap-reload.com     #DNS name from which you access
-    http:                                     #http 
-      paths:                                  #http://DNS:port/paths
-      - backend:
+  - host: kubernetes-configmap-reload.com        # DNS name from which you access
+    http:                                        # http protocol
+      paths:
+      - path: /mypath                            # http://kubernetes-configmap-reload.com/mypath
+        backend:
           service:
-            name: kubernetes-configmap-reload #service name metadata
+            name: kubernetes-configmap-reload-1  # service name metadata
             port:
-              number: 8081                    #service Port
+              number: 8081                       # service Port
+      - path: /myroad                            # http://kubernetes-configmap-reload.com/myroad
+        backend:
+          service:
+            name: kubernetes-configmap-reload-2  # service name  metadata
+            port:
+              number: 8082                       # service Port
