@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: quota-name
+  namespace: quota-ns           # where this ResourceQuota will be applied.
+spec:
+  hard:
+    requests.cpu: '1'           # This means that the total CPU requests for all the pods in this namespace cannot exceed 1 CPU
+    requests.memory: 1Gi        # This means that the total memory requests for all the pods in this namespace cannot exceed 1 GiB
+    limits.cpu: '2'             # This means that the total CPU limit for all the pods in this namespace cannot exceed 2 CPUs.
+    limits.memory: 2Gi          # This means that the total memory limit for all the pods in this namespace cannot exceed 2 GiB.
+    pods: '2'                   # This means that the total number of pods that can be created in this namespace is 2.
+    persistentvolumeclaims: '5' # This means that the total number of persistent volume claims in this namespace is limited to 5.
+    requests.storage: 5Gi       # This means that the total storage requests that can be made in this namespace cannot exceed 5 GiB.
