@@ -1,0 +1,13 @@
+# Use openjdk image JRE
+FROM openjdk:8-jre-alpine
+
+WORKDIR /usr/app/
+
+# Copy the jar file from builder image to the new image
+COPY /usr/src/app/target/my-app.jar .
+
+# Make port 8080 available to the world outside this container
+EXPOSE 8080
+
+# Run the jar file 
+ENTRYPOINT ["java","-jar","my-app.jar"]
