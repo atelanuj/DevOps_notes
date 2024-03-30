@@ -13,3 +13,4 @@ gives detail information about the node
     Kubectl describe node <Private_IP_of_node/node_name>
 
     Kubectl create -f <pod.yml>
+    #
