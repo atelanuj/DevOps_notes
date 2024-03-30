@@ -1,4 +1,4 @@
-# Labels and Selectors in K8s:
+# [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/):
 - Labels are the way by which you can filter and sort the number pods in a cluster
 - selector tells the replicaset/controller/deployment which pods to watch/belongs to
 - The label selector is the core grouping primitive in Kubernetes.
@@ -44,12 +44,12 @@ spec:
 ```
 ---
 
-# Imperative Commands to find pods with selected Labels
+## Imperative Commands to find pods with selected Labels
 `kubectl get pods --selector key=value --no-headers | wc -l`
 
 `kubectl get pods --selector env=prod,env=prod,tier=frontend`
 
-# Taints and Tolerence:
+# [Taints and Tolerence](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/):
 - Taints are placed on Nodes
 - Tolerations is placed on Pods
 - Tolerations allow the scheduler to schedule pods with matching taints.
@@ -113,7 +113,7 @@ spec:
     effect: "NoSchedule"
 ```
 ---
-# Node Selectors:
+# [Node Selectors](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/):
 - Node selectors helps in scheduling the pod on specific node based on labels assigned to node and the pods
 - suppose we have Three nodes namely Large, Small with labels as size = large/small.
 - We can use this label information to schedule our pods accordingly.
@@ -146,7 +146,7 @@ Add a label to a particular node
 > - size !=medium (not equal)
 
 ---
-# Node Affinity:
+# [Node Affinity](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/):
 - with the help of Node Affinity , you can control the scheduling of pods  onto nodes more granularly using various criteria like
 - It is an extension of node selectors which allows you to specify more flexible rules about where to place your pods by specifying certain requirements.
 
