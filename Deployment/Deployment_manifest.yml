@@ -6,6 +6,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myDeployment
+  labels:
+    tier: myapp
 spec:
   replicas: 3
   selector: 
