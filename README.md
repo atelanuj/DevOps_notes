@@ -70,6 +70,7 @@ spec:
   - Pods that tolerate the taint without specifying `tolerationSeconds` in their toleration specification remain bound forever
   - Pods that tolerate the taint with a specified `tolerationSeconds` remain bound for the specified amount of time. After that time elapses, the node lifecycle controller evicts the Pods from the node
   - Pods currently running on the node are **evicted** if does not match the tolerence.
+  - `NoExecute` effect can specify an optional `tolerationSeconds` field that dictates how long the pod will stay bound to the node after the taint is added
 - **NoSchedule**
   - No new Pods will be scheduled on the tainted node unless they have a matching toleration. Pods currently running on the node are not evicted.
 - **PreferNoSchedule**
@@ -77,7 +78,18 @@ spec:
   - The control plane will try to avoid placing a Pod that does not tolerate the taint on the node, *but it is not guaranteed*.
 ---
 ### Commands: (Applying Tolerence to Node:)
+To Apply the Taint on the Node
+
 `kubectl taint nodes node1 key1=value1:NoSchedule`
+
+To  remove the taint from the node:
+
+`kubectl taint nodes node1 key1=value1:NoSchedule-`
+```
+kubectl taint nodes node1 key1=value1:NoSchedule
+kubectl taint nodes node1 key1=value1:NoExecute
+kubectl taint nodes node1 key2=value2:NoSchedule
+```
 
 ### Applying Tolerence to Pod:
 ```
@@ -92,6 +104,8 @@ spec:
   - name: nginx
     image: nginx
     imagePullPolicy: IfNotPresent
+
+# add tolerence to Pod
   tolerations:
   - key: "key1"
     operator: "Equal"
@@ -99,6 +113,70 @@ spec:
     effect: "NoSchedule"
 ```
 ---
-# 
+# Node Selectors:
+- Node selectors helps in scheduling the pod on specific node based on labels assigned to node and the pods
+- suppose we have Three nodes namely Large, Small with labels as size = large/small.
+- We can use this label information to schedule our pods accordingly.
 
+Example :
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+      env: test
+spec:
+  containers:
+  - name: nginx
+    image: nginx
 
+# Apply node selector to run pod on node with size=large label on it
+  nodeSelector:
+    size: large
+```
+## Commands:
+Add a label to a particular node
+
+`kubectl label nodes <node_name> key=value`
+
+### Limitations:
+> NodeSelector will not be able to help in complex senerios such as
+> - size=large or size=small
+> - size !=medium (not equal)
+
+---
+# Node Affinity:
+- with the help of Node Affinity , you can control the scheduling of pods  onto nodes more granularly using various criteria like
+- It is an extension of node selectors which allows you to specify more flexible rules about where to place your pods by specifying certain requirements.
+
+Example: This manifest describes a Pod that has a `requiredDuringSchedulingIgnoredDuringExecution` node affinity,`size=large or size=small`. This means that the pod will get scheduled only on a node that has a `size=large or size=small`
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: size
+            operator: In
+            values: # The Pod will scheduled on the nodes that have at least one of these value.
+            - large
+            - small            
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+```
+## Node Affinity types:
+**`required`DuringScheduling`Ignored`DuringExecution**
+
+| Syntax | DuringScheduling | DuringExecution |
+| ----------- | ----------- | --------------- |
+| Type1 | Required | Ignored | 
+| Type2 | preferred | Ignored |
+| Type3 | Required | Required |
