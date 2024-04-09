@@ -356,4 +356,132 @@ total 16
 -rw------- 1 root root 3393 Apr  7 16:35 kube-controller-manager.yaml
 -rw------- 1 root root 3882 Apr  7 16:35 kube-apiserver.yaml
 ```
-- to ssh into any node within k8s cluster you can use the command `ssh <Node-name>`
+- to ssh into any node within k8s cluster you can use the command `ssh <Node-name>/<Node-IP>`
+
+# [Multiple Schedulers](https://kubernetes.io/docs/tasks/extend-kubernetes/configure-multiple-schedulers/):
+- K8s comes with a single default scheduler but as the k8s is highly extensible, If the default scheduler does not suit your needs you can **implement your own scheduler**.
+- you can even run multiple schedulers simultaneously alongside the default scheduler.
+---
+**STEP 1:**
+- Package your scheduler binary into a container image.
+- Clone the [Kubernetes](https://github.com/kubernetes/kubernetes.git) source code from GitHub and build the source.
+- `Docker Build -t` and `Docker Push` to push the Image to Docker Hub (or another registry). refer k8s documentation
+---
+**Docker File**
+```
+FROM busybox
+ADD ./_output/local/bin/linux/amd64/kube-scheduler /usr/local/bin/kube-scheduler
+```
+---
+**STEP 2:** Define a Kubernetes Deployment for the scheduler
+- you have your scheduler in a container image
+- create a pod/Deployment configuration for it and run it in your Kubernetes cluster.
+- Save it as [my-scheduler.yaml](https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/admin/sched/my-scheduler.yaml)
+- in the deployment use this
+```
+---
+# **my-scheduler-config.yaml**
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+  - schedulerName: my-scheduler
+leaderElection:
+  leaderElect: false 
+
+---
+# **my-scheduler-configmap.yaml**
+apiVersion: v1
+data:
+  my-scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    profiles:
+      - schedulerName: my-scheduler
+    leaderElection:
+      leaderElect: false
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: my-scheduler-config
+  namespace: kube-system   
+
+---
+# **my-scheduler.yml**
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: my-scheduler
+  name: my-scheduler
+  namespace: kube-system
+spec:
+  serviceAccountName: my-scheduler
+  containers:
+  - command:
+    - /usr/local/bin/kube-scheduler
+    - --config=/etc/kubernetes/my-scheduler/my-scheduler-config.yaml
+    image: registry.k8s.io/kube-scheduler:v1.29.0
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 10259
+        scheme: HTTPS
+      initialDelaySeconds: 15
+    name: kube-second-scheduler
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: 10259
+        scheme: HTTPS
+    resources:
+      requests:
+        cpu: '0.1'
+    securityContext:
+      privileged: false
+    volumeMounts:
+      - name: config-volume
+        mountPath: /etc/kubernetes/my-scheduler
+  hostNetwork: false
+  hostPID: false
+  volumes:
+    - name: config-volume
+      configMap:
+        name: my-scheduler-config
+```
+---
+**STEP 3:** How to use the custom schduler into pod definations.
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+  
+  # This is how you can add the custom scheduler to pod.
+  schedulerName: my-scheduler
+```
+**Example**:
+```
+controlplane ~ ➜  kubectl get pods -A
+NAMESPACE      NAME                                   READY   STATUS    RESTARTS   AGE
+kube-flannel   kube-flannel-ds-nssdp                  1/1     Running   0          10m
+kube-system    coredns-69f9c977-25wxh                 1/1     Running   0          10m
+kube-system    coredns-69f9c977-9v84m                 1/1     Running   0          10m
+kube-system    etcd-controlplane                      1/1     Running   0          11m
+kube-system    kube-apiserver-controlplane            1/1     Running   0          11m
+kube-system    kube-controller-manager-controlplane   1/1     Running   0          10m
+kube-system    kube-proxy-zhj22                       1/1     Running   0          10m
+kube-system    kube-scheduler-controlplane            1/1     Running   0          10m
+kube-system    **my-scheduler**                           1/1     Running   0          2m22s
+```
+---
+`kubectl get events -o wide`
+
+`kubectl logs <scheduler_name> -n <name_space>`
+
+---
+# 
