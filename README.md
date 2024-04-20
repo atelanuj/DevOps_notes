@@ -484,4 +484,84 @@ kube-system    **my-scheduler**                           1/1     Running   0   
 `kubectl logs <scheduler_name> -n <name_space>`
 
 ---
-# 
+# [Scheduler Profiles](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/):
+- Suppose if you have multiple schedulers you can combine all those schedulers to use same binary rather than creating multiple binaries, this can be achived with the help of Scheduler Profile in latest k8s versions.
+- this is a efficient way to use and configure mutiple schedulers in k8s cluster.
+- How a Pod gets scheduled on the nodes
+  - **Sceduling Queue**
+  - **Filtering**
+  - **Scoring**
+  - **Binding**
+
+![alt text](<Screenshot 2024-04-20 at 13-52-52 Certified Kubernetes Administrator (CKA) Practice Exam Tests.png>)
+
+## Scheduling Queue:
+
+### PriorityClass
+- you can set the priority of pod tobe scheduled
+```
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+globalDefault: false
+description: "This priority class should be used for XYZ service pods only."
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  priorityClass: high-priority
+  containers:
+  - name: nginx
+    image: nginx
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 10
+```
+
+## [Filtering](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/#kube-scheduler-implementation): 
+- Filter which nodes are not  suitable for running the pod, e.g., lack of resource or taints and tolerations
+
+## [Scoring](https://discuss.kubernetes.io/t/kube-pod-scoring-criteria/20743):
+- after the filtering phase Nodes which are eligible will go through the scoring phase . The node with the highest score is selected.
+- Score means Suitable to run the Pod and have more available free resource after scheduling.
+- The scheduler assigns a score to each Node that survived filtering, basing this score on the active scoring rules.
+
+## Binding:
+- The nodes which have a good score are selected for binding.
+
+### [Sceduler Plugins](https://kubernetes.io/docs/concepts/scheduling-eviction/scheduling-framework/#interfaces): 
+- **Scheduling Queue**
+  - PrioritySort
+- **Filtering**
+  - NodeResourcesFit
+  - NodeName
+  - NodeUnschedule
+- **Scoring**
+  - NodeResourcesFit
+  - ImageLocality
+- **Binding**
+  - DefaultBinder
+
+These Plugins are pluged to **Extention points**
+
+1. queueSort
+2. filter
+3. score
+4. bind
+---
+# [Logging and Monitoring the Kubernetes Components:](https://kubernetes.io/docs/tasks/debug/)
+## Monitoring The k8s Cluster
+- `Metric Server` is available on each node to gather logs.
+- Metric server can be enabled using `minikube addons enable metrics-server` on minikube only
+-  for Others
+   -  `git clone https://github.com/kubernetes-incubator/metrics-server.git`
+   - `kubectl create -f deploy/1.8+/`
+   - `kubectl top node` to view resource consumption of cluster.
+   - `kubectl top pod` to view resources consumption of pods.
