@@ -754,3 +754,8 @@ CMD ["5"]
 # If you run: docker run my-image 10
 # It will execute: sleep 10 (additional arguments are appended)
 ```
+### POD
+- we can use `command` to override the `ENTRYPOINT` from pod defination
+- we can use `args` to override the `CMD` from pod defination
+
+![alt text](image-6.png) 
