@@ -6,6 +6,8 @@
 - kubectl get pods --namespace=`dev`
 - Kubectl get pods -n `namespace`
 - kubectl get pods --namespace=`dev` --show-labels
+- kubectl config set-context --current --namespace=`namespace-name`
+- kubectl config set-context `context-name` --cluster=`new-cluster-name` --user=new-`user-name` --namespace=`new-namespace`
 - kubectl describe `pod`/`service`/`deployment`/`replicaset`
 - kubectl run `name` --image=`image` --command -- `cmd` `args1` `args2`
 - kubectl run `name` --image=`image` --dry-run=client -o yaml > `name`.yaml
@@ -13,7 +15,6 @@
 - kubectl replace --force -f `name`.yaml # replace
 - kubectl edit `pod`/`service`/`deployment`/`replicaset` `resource-name` # edit
 - kubectl set image deployment `deployment-name` `name`=`image-name`:`version`
--  
 - kubectl delete pod `name`
 - kubectl delete pod `name` --grace-period=0 --force # force delete
 - kubectl delete pod `name` --grace-period=0 --force --namespace=`namespace`
@@ -34,7 +35,6 @@
 - kubectl rollout pause deployment/`deployment-name` # Pauses the rollout of a deployment
 - kubectl rollout resume deployment/`deployment-name` # Resumes a paused deployment rollout.
 - Kubectl rollout status deployment `deployment-name`
-- 
 - kubectl expose deployment `deployment-name` --port=80 --target-port=8080 # Exposes a deployment as a new service on port 80, targeting the container port 8080.
 - kubectl label pods `pod-name` `app=myapp`
 - kubectl label nodes `node-name` `disk=ssd`
@@ -54,9 +54,7 @@
 - kubectl uncordon `node-name` # Marks a node as schedulable, allowing new pods to be scheduled on it.
 - kubectl cp `file.txt` `pod-name`:`/path/to/dir` # Copies a file from the local machine to a pod.
 - kubectl cp `pod-name`:`/path/to/file.log` `file.log` # Copies a file from a pod to the local machine.
-- 
-- 
-
+---
 
 # [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/):
 - Labels are the way by which you can filter and sort the number pods in a cluster
