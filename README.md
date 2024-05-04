@@ -27,6 +27,13 @@
 - kubectl create `pod`/`service`/`deployment`/`replicaset`/`namespace` -f `name`.yaml
 - kubectl create -f `name`.yaml
 - kubectl create -f `name`.yaml --record # record the history
+- kubectl create configmap `configmap-name` --from-literal=`key=value` --from-literal=`key2=value2`
+- kubectl create configmap `configmap-name` --from-file=`path-to-file`
+- kubectl create configmap `configmap-name` --from-file=`app.config.properties`
+- kubectl create secret generic `secret-name` --from-literal=`key`=`value`
+- kubectl create secret generic `secret-name` --from-literal=`key`=`value` --from-literal=`key1`=`value1`
+- kubectl create secret generic `secret-name` --from-file=`path-to-file`
+- kubectl create secret generic `app-secret` --from-file=`app-secret.properties`
 - kubectl apply -f `config1.yaml` -f `config2.yaml` # Applies multiple configuration files.
 - kubectl apply -f `https://url.com/config.yaml` # Applies a configuration from a URL.
 - kubectl scale deployment `deployment-name` --replicas=`5` -f `deploy.yml` --record # Scales a deployment to 5 replicas and records the change in the revision history.
@@ -868,7 +875,7 @@ spec:
 - A ConfigMap allows you to decouple environment-specific configuration from your container images, so that your applications are easily portable.'
 - a ConfigMap has `data` and `binaryData` fields rather than spec.
 - The data field is designed to contain `UTF-8` strings while the binaryData field is designed to contain binary data as `base64-encoded` strings.
-- The Kubernetes feature `Immutable` Secrets and ConfigMaps provides an option to set individual Secrets and ConfigMaps as immutable.
+- **The Kubernetes feature `Immutable` Secrets and ConfigMaps provides an option to set individual Secrets and ConfigMaps as immutable**.
   - protects you from **accidental** (or unwanted) updates that could cause applications outages
   - **improves performance** of your cluster by significantly reducing load on kube-apiserver, by closing watches for ConfigMaps marked as immutable.
 ```
@@ -887,7 +894,10 @@ immutable: true
 
 ### Creating a ConfigMap
 - Imperative
-  - Adding config map thriugh command line
+  - Adding config map through command line
+    - kubectl create configmap `configmap-name` --from-literal=`key=value` --from-literal=`key2=value2`
+    - kubectl create configmap `configmap-name` --from-file=`path-to-file`
+    - kubectl create configmap `configmap-name` --from-file=`app.config.properties`
 - Diclarative
   - Adding through the pod defination
 ```
@@ -909,7 +919,10 @@ data:
     color.bad=yellow
     allow.textmode=true    
 ```
-
+command : 
+- `kubectl create -f configmap.yml`
+- `kubectl describe configmaps`
+- `kubectl get configmaps`
 
 There are four different ways that you can use a ConfigMap to configure a container inside a Pod:
 
@@ -938,7 +951,7 @@ spec:
 ```
 - adding env varibles as `USERNAME = admin` and `APP_COLOUR = pink`in pod defination directly.
 
-1. Using `envFrom` in pod defination
+1. **Using `valueFrom` in pod defination**
 ```
 ---
 apiVersion: v1
@@ -966,8 +979,27 @@ spec:
 - The value of `frontend` will be assigned to `APP_COLOUR` env variable from `APP` configmap
 - The value of `ui_properties_file_name` will be assigned to `UI_PROPERTIES_FILE_NAME` env variable from `game-demo` configmap
 
-1. Mounting the configMap through the `Volumes`.
-To consume a ConfigMap in a volume in a Pod:
+2. **Using `envFrom` in pod defination**
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  priorityClass: high-priority
+  containers:
+  - name: nginx
+    image: nginx
+    envFrom:
+      - configMapKeyRef:
+          name: app-config
+```
+Use `envFrom` to define all of the ConfigMap's data as container environment variables. The key from the ConfigMap becomes the environment variable name in the Pod.
+
+
+3. **Mounting the configMap through the `Volumes`.
+To consume a ConfigMap in a volume in a Pod:**
 
   - Create a ConfigMap or use an existing one. Multiple Pods can reference the same ConfigMap.
   - Modify your Pod definition to add a volume under `.spec.volumes[]`. Name the volume anything, and have a `.spec.volumes[].configMap.name` field set to reference your ConfigMap object.
@@ -1002,20 +1034,93 @@ spec:
 
 
 
-# Secrets
+# [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
+## What is a Secret
+- A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key.
+- Using a Secret means that you don't need to include confidential data in your application code.
+- Secrets are similar to ConfigMaps but are specifically intended to hold confidential data.
+
+## Use Cases
+- [Set environment variables for a container.](https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#define-container-environment-variables-using-secret-data)
+- [Provide credentials such as SSH keys or passwords to Pods.](https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#provide-prod-test-creds)
+- [Allow the kubelet to pull container images from private registries.](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
+
+# How to create a Secret
+- Imperative
+  - commands
+    - kubectl create secret generic `secret-name` --from-literal=`key`=`value`
+    - kubectl create secret generic `secret-name` --from-literal=`key`=`value` --from-literal=`key1`=`value1`
+    - kubectl create secret generic `secret-name` --from-file=`path-to-file`
+    - kubectl create secret generic `app-secret` --from-file=`app-secret.properties`
+- Diclarative
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dotfile-secret
+data:
+  DB_HOST: dmFsdWUtMg0KDQo= # this is a encoded value
+  DB_USER: dmFsdWUtMQ0KDQo= # this is a encoded value
+  DB_PASS: dmFsdWUtMl0KDQo= # this is a encoded value
+```
+To encode a values in a secret use:
+```
+echo -n 'my-value-to-be-encoded' | base64
+```
+to decode the values in a secret use:
+```
+echo -n 'c29tZS12YWx1ZQ==' | base64 --decode
+```
+1. `envFrom` injecting secret as a Environment variables
 ```
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: frontend
+  name: secret-dotfiles-pod
 spec:
-  priorityClass: high-priority
   containers:
-  - name: nginx
-    image: nginx
-    env:
-      - name: APP_COLOUR
-        valueFrom:
-          secretKeyRef:
+    - name: dotfile-test-container
+      image: registry.k8s.io/busybox
+      envFrom:
+        - secretRef:
+            name: dotfile-secret
+```
+1. `valueFrom` injecting secret as a `Single` Environment variables
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-dotfiles-pod
+spec:
+  containers:
+    - name: dotfile-test-container
+      image: registry.k8s.io/busybox
+      env:
+        - name: SECRET_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dotfile-secret
+              key: username
+```
+2. Mount secret from a `volume`
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-dotfiles-pod
+spec:
+  containers:
+    - name: dotfile-test-container
+      image: registry.k8s.io/busybox
+      volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: "/etc/secret-volume"
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: dotfile-secret
 ```
