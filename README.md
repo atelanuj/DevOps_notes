@@ -16,9 +16,9 @@
 - kubectl edit `pod`/`service`/`deployment`/`replicaset` `resource-name` # edit
 - kubectl set image deployment `deployment-name` `name`=`image-name`:`version`
 - kubectl delete pod `name`
-- kubectl delete pod `name` --grace-period=0 --force # force delete
-- kubectl delete pod `name` --grace-period=0 --force --namespace=`namespace`
-- kubectl delete pod `name` --grace-period=0 --force --namespace=`namespace`
+- kubectl delete pod `name` --grace-period=`0` --force # force delete
+- kubectl delete pod `name` --grace-period=`0` --force --namespace=`namespace`
+- kubectl delete pod `name` --grace-period=`0` --force --namespace=`namespace`
 - kubectl logs -f `pod`/`service`/`deployment`/`replicaset` # get logs
 - kubectl logs -f `pod` -c `container_name`
 - kubectl logs --tail=20 `pod-name`
@@ -54,6 +54,7 @@
 - kubectl uncordon `node-name` # Marks a node as schedulable, allowing new pods to be scheduled on it.
 - kubectl cp `file.txt` `pod-name`:`/path/to/dir` # Copies a file from the local machine to a pod.
 - kubectl cp `pod-name`:`/path/to/file.log` `file.log` # Copies a file from a pod to the local machine.
+- `kubectl api-resources` | tail +2 | awk ' { print $1 }'`; do kubectl explain $kind; done | grep -e "KIND:" -e "VERSION:"
 ---
 
 # [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/):
@@ -854,3 +855,110 @@ spec:
 ```
 >**Note**:
 > Both the `command` and `args` need to string not number
+
+# [Config Maps](ConfigMaps) and Secrets:
+## What is a ConfigMap
+- ConfigMap can pass the key value pair to the pod
+- ConfigMap can be used to pass the configuration to the pod
+- it helps in managing the environment variables in the pod defination centrally
+- A ConfigMap is an API object used to store non-confidential data in key-value pairs
+- Pods can consume ConfigMaps as environment variables, command-line arguments, or as configuration files in a volume.
+- The Pod and the ConfigMap must be in the same namespace.
+- ConfigMap does not provide secrecy or encryption
+- A ConfigMap allows you to decouple environment-specific configuration from your container images, so that your applications are easily portable.'
+- a ConfigMap has `data` and `binaryData` fields rather than spec.
+- The data field is designed to contain `UTF-8` strings while the binaryData field is designed to contain binary data as `base64-encoded` strings.
+- The Kubernetes feature `Immutable` Secrets and ConfigMaps provides an option to set individual Secrets and ConfigMaps as immutable.
+  - protects you from **accidental** (or unwanted) updates that could cause applications outages
+  - **improves performance** of your cluster by significantly reducing load on kube-apiserver, by closing watches for ConfigMaps marked as immutable.
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  ...
+data:
+  ...
+immutable: true
+```
+>**Note**: Once a ConfigMap is marked as `immutable`, it is not possible to revert this change nor to mutate the contents of the data or the binaryData field. You can only delete and recreate the ConfigMap. Because existing Pods maintain a mount point to the deleted ConfigMap, it is recommended to recreate these pods.
+
+
+>**Note**: A ConfigMap is not designed to hold large chunks of data. The data stored in a ConfigMap cannot exceed `1 MiB`. If you need to store settings that are larger than this limit, you may want to consider **mounting a volume** or use a separate database or file service.
+
+### Creating a ConfigMap
+- Imperative
+  - Adding config map thriugh command line
+- Diclarative
+  - Adding through the pod defination
+
+
+## What is a Secret
+- 
+
+
+There are three ways you can add enviroment variables
+   
+   1. Using `env` in pod defination
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  priorityClass: high-priority
+  containers:
+  - name: nginx
+    image: nginx
+    env:
+      - name: USERNAME
+        value: admin
+      - name: APP_COLOUR
+        value: Pink
+```
+- adding env varibles as `USERNAME = admin` and `APP_COLOUR = pink`in pod defination directly.
+
+   2. Using `envFrom` in pod defination
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  priorityClass: high-priority
+  containers:
+  - name: nginx
+    image: nginx
+    env:                      # Define the environment variable
+      - name: APP_COLOUR      # Notice that the case is different here 
+                              # from the key name in the ConfigMap.
+        valueFrom:            
+          configMapKeyRef:
+            name: APP         # The ConfigMap this value comes from.
+            key: frontend     # The key to fetch.
+      - name: UI_PROPERTIES_FILE_NAME
+        valueFrom:
+          configMapKeyRef:
+            name: game-demo                 # different configmap
+            key: ui_properties_file_name    # key to fetch the value of
+```
+- The value of `frontend` will be assigned to `APP_COLOUR` env variable from `APP` configmap
+- The value of `ui_properties_file_name` will be assigned to `UI_PROPERTIES_FILE_NAME` env variable from `game-demo` configmap
+
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  priorityClass: high-priority
+  containers:
+  - name: nginx
+    image: nginx
+    env:
+      - name: APP_COLOUR
+        valueFrom:
+          secretKeyRef:
+```
