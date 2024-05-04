@@ -856,7 +856,7 @@ spec:
 >**Note**:
 > Both the `command` and `args` need to string not number
 
-# [Config Maps](ConfigMaps) and Secrets:
+# [Config Map](ConfigMaps):
 ## What is a ConfigMap
 - ConfigMap can pass the key value pair to the pod
 - ConfigMap can be used to pass the configuration to the pod
@@ -890,15 +890,35 @@ immutable: true
   - Adding config map thriugh command line
 - Diclarative
   - Adding through the pod defination
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: game-demo
+data:
+  # property-like keys; each key maps to a simple value
+  player_initial_lives: "3"
+  ui_properties_file_name: "user-interface.properties"
+
+  # file-like keys
+  game.properties: |
+    enemy.types=aliens,monsters
+    player.maximum-lives=5    
+  user-interface.properties: |
+    color.good=purple
+    color.bad=yellow
+    allow.textmode=true    
+```
 
 
-## What is a Secret
-- 
+There are four different ways that you can use a ConfigMap to configure a container inside a Pod:
 
-
-There are three ways you can add enviroment variables
+    1. Inside a container command and args
+    2. Environment variables for a container
+    3. Add a file in read-only volume, for the application to read
+    4. Write code to run inside the Pod that uses the Kubernetes API to read ConfigMap
    
-   1. Using `env` in pod defination
+1. Using `env` in pod defination
 ```
 ---
 apiVersion: v1
@@ -918,7 +938,7 @@ spec:
 ```
 - adding env varibles as `USERNAME = admin` and `APP_COLOUR = pink`in pod defination directly.
 
-   2. Using `envFrom` in pod defination
+1. Using `envFrom` in pod defination
 ```
 ---
 apiVersion: v1
@@ -946,6 +966,43 @@ spec:
 - The value of `frontend` will be assigned to `APP_COLOUR` env variable from `APP` configmap
 - The value of `ui_properties_file_name` will be assigned to `UI_PROPERTIES_FILE_NAME` env variable from `game-demo` configmap
 
+1. Mounting the configMap through the `Volumes`.
+To consume a ConfigMap in a volume in a Pod:
+
+  - Create a ConfigMap or use an existing one. Multiple Pods can reference the same ConfigMap.
+  - Modify your Pod definition to add a volume under `.spec.volumes[]`. Name the volume anything, and have a `.spec.volumes[].configMap.name` field set to reference your ConfigMap object.
+  - Add a `.spec.containers[].volumeMounts[]` to each container that needs the ConfigMap. Specify `.spec.containers[].volumeMounts[].readOnly = true` and `.spec.containers[].volumeMounts[].mountPath` to an unused directory name where you would like the ConfigMap to appear inside the container.
+    - If there are multiple containers in the Pod, then each container needs its own `volumeMounts` block, but only **one** `.spec.volumes` is needed per ConfigMap
+  - Modify your image or command line so that the program looks for files in **that directory**. Each key in the ConfigMap data map becomes the filename under mountPath.
+  - Mounted ConfigMaps are updated automatically
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: mypod
+    image: redis
+    volumeMounts:
+    - name: foo
+      mountPath: "/etc/foo"
+      readOnly: true
+  volumes:
+  - name: foo
+    configMap:
+      name: myconfigmap
+```
+
+
+
+
+
+
+
+
+
+# Secrets
 ```
 ---
 apiVersion: v1
