@@ -1006,6 +1006,9 @@ To consume a ConfigMap in a volume in a Pod:**
   - Add a `.spec.containers[].volumeMounts[]` to each container that needs the ConfigMap. Specify `.spec.containers[].volumeMounts[].readOnly = true` and `.spec.containers[].volumeMounts[].mountPath` to an unused directory name where you would like the ConfigMap to appear inside the container.
     - If there are multiple containers in the Pod, then each container needs its own `volumeMounts` block, but only **one** `.spec.volumes` is needed per ConfigMap
   - Modify your image or command line so that the program looks for files in **that directory**. Each key in the ConfigMap data map becomes the filename under mountPath.
+  - These volumes can be of various types, such as `emptyDir`, `hostPath`, `persistentVolumeClaim`, `configMap`, or `secret`.
+  - The `volumeMounts` section allows you to connect the volumes defined in the Pod specification to specific paths within the container's filesystem
+  - This enables containers to access and store data persistently, share data between containers in the same Pod, or access configuration files and secrets securely.
   - Mounted ConfigMaps are updated automatically
 ```
 apiVersion: v1
@@ -1026,19 +1029,15 @@ spec:
       name: myconfigmap
 ```
 
-
-
-
-
-
-
-
-
 # [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
 ## What is a Secret
 - A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key.
 - Using a Secret means that you don't need to include confidential data in your application code.
 - Secrets are similar to ConfigMaps but are specifically intended to hold confidential data.
+- A secret is only sent to a node if a pod on that node requires it. 
+- Kubelet stores the secret into a `tmpfs` so that the secret is not written to disk storage. 
+- Once the Pod that depends on the secret is deleted, kubelet will delete its local copy of the secret data as well.
+
 
 ## Use Cases
 - [Set environment variables for a container.](https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#define-container-environment-variables-using-secret-data)
@@ -1124,3 +1123,15 @@ spec:
       secret:
         secretName: dotfile-secret
 ```
+> **Notes**:
+> - Secrets are not encrypted they only encoded.
+> - dont push secrets to code repos
+> - secrets are not encrypted in `etcd
+>   - enable the encryption at REST
+> - Anyone able to create pods/deploys in the same namespace can access the secrets
+>   - configure less privileged access to secrets - `RBAC`
+> -   Consider third party secrets providers
+>   - AWS provider
+>   - AZURE provider
+>   - GCP provider
+>   - valut provider
