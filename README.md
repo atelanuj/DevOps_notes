@@ -62,6 +62,9 @@
 - kubectl cp `file.txt` `pod-name`:`/path/to/dir` # Copies a file from the local machine to a pod.
 - kubectl cp `pod-name`:`/path/to/file.log` `file.log` # Copies a file from a pod to the local machine.
 - `kubectl api-resources` | tail +2 | awk ' { print $1 }'`; do kubectl explain $kind; done | grep -e "KIND:" -e "VERSION:"
+- kubectl drain `node_name` # this will make the node unshedulable and make the pods spawn on other nodes
+- kubectl uncordon `node_name` # this will make the node schedulable
+- kubectl cordon `node_name` # this will make the node unschedulable 
 ---
 
 # [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/):
@@ -1140,19 +1143,57 @@ spec:
 - The containers in a Pod are automatically co-located and co-scheduled on the same physical or virtual machine in the cluster.
 - The containers can share resources and dependencies, communicate with one another, and coordinate when and how they are terminated.
 
+## Multi Container Pods design and Pattern:
+1. SIDECAR
+2. ADAPTER
+3. AMBASSADOR
+
+![alt text](image-7.png)
+
+---
+#### SideCar Container
+#### ADAPTER Container
+#### AMBASSADOR Container
+
 ## Pods in a Kubernetes cluster are used in two main ways:
 - Pods that run a single container.
   - The "one-container-per-Pod" model is the most common Kubernetes use case; in this case, you can think of a Pod as a wrapper around a single container; Kubernetes manages Pods rather than managing the containers directly.
 - Pods that run multiple containers that need to work together.
   - A Pod can encapsulate an application composed of multiple co-located containers that are tightly coupled and need to share resources. These co-located containers form a single cohesive unit of service—for example, one container serving data stored in a shared volume to the public, while a separate **sidecar** container refreshes or updates those files. The Pod wraps these containers, storage resources, and an ephemeral network identity together as a single unit.
 
-### Init Containers
+### [Init Containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/)
 - Init containers can contain **utilities or setup scripts** not present in an app image.
 - You can specify init containers in the Pod specification alongside the containers array (which describes app containers).
 -  containers that run to completion during Pod initialization.
 -  init containers, which are run before the app containers are started. 
 -  If a Pod's init container `fails`, the `kubelet` repeatedly restarts that init container until it succeeds.
 -  However, if the Pod has a `restartPolicy` of `Never`, and an init container fails during startup of that Pod, Kubernetes treats the overall Pod as failed.
+-  But at times you may want to run a process that runs to completion in a container. 
+  
+**For example** a process that pulls a code or binary from a repository that will be used by the main web application. That is a task that will be run only  one time when the pod is first created. Or a process that waits  for an external service or database to be up before the actual application starts. That's where initContainers comes in.
+
+Example 1:
+```
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: myapp-pod
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp-container
+        image: busybox:1.28
+        command: ['sh', '-c', 'echo The app is running! && sleep 3600']
+      initContainers:
+      - name: init-myservice
+        image: busybox
+        command: ['sh', '-c', 'git clone <some-repository-that-will-be-used-by-application> ; done;']
+```
+
+
+
+
 
 **Init containers are exactly like regular containers, except:**
 - Init containers always run to completion.
@@ -1183,29 +1224,69 @@ spec:
 - If you specify multiple init containers for a Pod, kubelet runs each init container sequentially
 - Each init container must succeed before the next can run.
 - When all of the init containers have run to completion, `kubelet` initializes the application containers for the Pod and runs them as usual.
+- If any of the initContainers fail to complete, Kubernetes restarts the Pod repeatedly until the Init Container succeeds.
+- if the pod fails to restart after sevral attemps then K8s gives up and pod goes into `crashloopbackoff` error.
 
-Example:
+
+Example 2: 
 ```
-apiVersion: v1
-kind: Pod
-metadata:
-  name: myapp-pod
-  labels:
-    app.kubernetes.io/name: MyApp
-spec:
-  containers:
-  - name: myapp-container
-    image: busybox:1.28
-    command: ['sh', '-c', 'echo The app is running! && sleep 3600']
-  initContainers:
-  - name: init-myservice
-    image: busybox:1.28
-    command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
-  - name: init-mydb
-    image: busybox:1.28
-    command: ['sh', '-c', "until nslookup mydb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for mydb; sleep 2; done"]
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: myapp-pod
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp-container
+        image: busybox:1.28
+        command: ['sh', '-c', 'echo The app is running! && sleep 3600']
+      initContainers:
+      - name: init-myservice
+        image: busybox:1.28
+        command: ['sh', '-c', 'until nslookup myservice; do echo waiting for myservice; sleep 2; done;']
+      - name: init-mydb
+        image: busybox:1.28
+        command: ['sh', '-c', 'until nslookup mydb; do echo waiting for mydb; sleep 2; done;']
 ```
 ```
 NAME        READY     STATUS     RESTARTS   AGE
 myapp-pod   0/1       Init:0/2   0          6m
 ```
+# Cluster Maintenance:
+## OS upgrades and Patching of cluster:
+- We can drain the node on K8s cluster for which we want to patch 
+- this will make the node unschedulable and whatever pods present on the node will be terminated and created on some other node which part of the replica set.
+- if the pods on the node which is supposed tobe drain is not a part of replicaset of replication controller or deamonSet then that node will note be able to drain because that pod will not created on other node. So for this we need to use the `--force` option.
+
+**Command**
+```
+kubectl drain `node_name`
+```
+- after the pathing is done you can make the node normal by making it uncorden.
+
+**Command**
+```
+kubectl uncordon `node_name`
+```
+- this will make the node schedulable. and the new pods will be spawned when the pods on the other node will be terminated or crashed.
+
+**Command**
+```
+kubectl cordon 'node_name'
+```
+- This will cordon the node means this make the node unshedulable, But the pods which are already presnet on the node will not be evicted. 
+- **Taints** offer more granular control compared to cordoning
+
+## Cluster Upgrade Process
+- always the `kube-apiserver` will be one or two versions higher than other cluster components
+- but the `kubectl` can be higher than `kube-apiserver`
+- ![alt text](image-8.png)
+- whenever the new version of k8s is releases then the `X-3` version will be unsupported.
+- recommended way of upgrading is upgrading minor versios 
+  - ex - `1.10 --> 1.11 --> 1.12 --> 1.13` 
+- you can easily upgrade the k8s version on managed k8s on cloud provider with just few clicks
+- for `kubeadm` you can use the 
+  - `kubeadm upgrade plan`
+  - `kubeadm upgrade apply`
+- if you have deployed the k8s cluster from scratch then you need to upgrade each compomnents manually.
