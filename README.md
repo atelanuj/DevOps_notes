@@ -1263,6 +1263,7 @@ myapp-pod   0/1       Init:0/2   0          6m
 ```
 kubectl drain `node_name`
 ```
+- with drain you can **empty** and make the node **unschedulable**
 - after the pathing is done you can make the node normal by making it uncorden.
 
 **Command**
@@ -1290,3 +1291,13 @@ kubectl cordon 'node_name'
   - `kubeadm upgrade plan`
   - `kubeadm upgrade apply`
 - if you have deployed the k8s cluster from scratch then you need to upgrade each compomnents manually.
+
+### Cluster upgrade strategy:
+- **Strategy-1**
+  - upgrade the mastet node first this will not give downtime as the pods in the nodes are still serving the traffic
+    - as the master is still upgrading the new pods on the Worker nodes will not be created as a part of `replicaSet`
+  - upgrading all node at once this will have a downtime
+- **Strategy-2**
+  - Upgarding the master node fist this will not give downtime as the pods in the nodes are still serving the traffi
+    - as the master is still upgrading the new pods on the Worker nodes will not be created as a part of `replicaSet`
+  - Upgarding the node one by one, when a node is been taken down for upgrade the pods on the node will be creted on the different node which is running.
