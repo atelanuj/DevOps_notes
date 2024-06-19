@@ -1265,7 +1265,7 @@ kubectl drain `node_name`
 kubectl drain controlplane --ignore-daemonsets
 kubectl drain controlplane --force --ignore-daemonsets # when the pod is present and not a part of replicaSet
 ```
-- with drain you can **empty** and make the node **unschedulable**
+- with drain you can **empty** node and make the node **unschedulable**
 - after the pathing is done you can make the node normal by making it uncorden.
 
 **Command**
@@ -1305,3 +1305,66 @@ kubectl cordon 'node_name'
   - Upgarding the master node fist this will not give downtime as the pods in the nodes are still serving the traffi
     - as the master is still upgrading the new pods on the Worker nodes will not be created as a part of `replicaSet`
   - Upgarding the node one by one, when a node is been taken down for upgrade the pods on the node will be creted on the different node which is running.
+---
+
+# Backup and Restore Methods :
+- **etcd** is the key-value store for kubernetes cluster
+- **There are two way you can backup the cluster configurations**
+  - querying the `kube-apiserver`
+  - taking a snapshot.db of `etcd`
+## Backup `ETCD`
+- `etcd` stores the state of the cluster
+- rather than taking a backup of each individual resource, best way to take the backup of `ETCD database`
+- for etcd the data is stored in the `data-dir=/var/lib/etcd` 
+- etcd comes with a built in snapshot solution
+- to take the `etcd` backup first stop the kube-apiserver using `Service kube-apiserver stopped`
+```
+ETCDCTL_API=3 etcdctl \
+    snapshot save snapshot.db
+```
+
+- to check the snapshot status
+```
+ETCDCTL_API=3 etcdctl \
+    snapshot status snapshot.db
+```
+
+```
+ETCDCTL_API=3 etcdctl \
+    snapshot restore snapshot.db \
+        --data-dir /var/lib/etcd-from-backup
+```
+- `systemctl daemon-reload`
+- `service etcd restart`
+- for authentication remember to provide the certs for `etcd`
+
+```
+ETCDCTL_API=3 etcdctl --endpoints=https://[127.0.0.1]:2379 \
+--cacert=/etc/kubernetes/pki/etcd/ca.crt \
+--cert=/etc/kubernetes/pki/etcd/server.crt \
+--key=/etc/kubernetes/pki/etcd/server.key \
+snapshot save /opt/snapshot-pre-boot.db
+```
+
+- if are using a managed k8s you wont be able to access or backup the `etcd`
+- best way to query the `api-server`
+-  to query the `api-server` use the below command
+```
+kubectl get all --all-namespaces -o yaml > all-deploy-services.yml
+```
+### what is a `etcdctl`?
+- `etcdctl` is a command-line tool for interacting with etcd, a distributed key-value store.
+- `etcdctl` is used to:
+  - Put, get, and delete keys from etcd
+  - Watch for changes to keys
+  - Manage etcd cluster membership
+  - Perform maintenance tasks, such as defragmentation and compaction
+```
+etcdctl put <key> <value>
+etcdctl get <key>
+etcdctl del <key>
+# Watches for changes to a key in etcd and prints the new value when it changes.
+etcdctl watch <key>
+# Manages etcd cluster membership
+etcdctl member <subcommand>
+```
