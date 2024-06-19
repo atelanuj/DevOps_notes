@@ -1262,6 +1262,8 @@ myapp-pod   0/1       Init:0/2   0          6m
 **Command**
 ```
 kubectl drain `node_name`
+kubectl drain controlplane --ignore-daemonsets
+kubectl drain controlplane --force --ignore-daemonsets # when the pod is present and not a part of replicaSet
 ```
 - with drain you can **empty** and make the node **unschedulable**
 - after the pathing is done you can make the node normal by making it uncorden.
@@ -1290,6 +1292,8 @@ kubectl cordon 'node_name'
 - for `kubeadm` you can use the 
   - `kubeadm upgrade plan`
   - `kubeadm upgrade apply`
+    - in kubeadm upgrade the kublets are not upgraded you have to manually upgrade the kubelets
+    - when you do `kubectl get node` it will only shows the versions of the kubelet on the master and worker nodes
 - if you have deployed the k8s cluster from scratch then you need to upgrade each compomnents manually.
 
 ### Cluster upgrade strategy:
