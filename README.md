@@ -1312,6 +1312,7 @@ kubectl cordon 'node_name'
 - **There are two way you can backup the cluster configurations**
   - querying the `kube-apiserver`
   - taking a snapshot.db of `etcd`
+- You cannot backup the etcd in **managed** K8s cluster
 ## Backup `ETCD`
 - `etcd` stores the state of the cluster
 - rather than taking a backup of each individual resource, best way to take the backup of `ETCD database`
@@ -1368,3 +1369,58 @@ etcdctl watch <key>
 # Manages etcd cluster membership
 etcdctl member <subcommand>
 ```
+# [Disaster Recovery for K8s](https://www.youtube.com/watch?v=qRPNuT080Hk)
+# Security
+  - controlling the access to `kube-apiserver` you can control the authentication
+    - **who can acess** and **what can they do**
+
+**Who can access?**
+`Authentication mechanism`
+- Username and passwords in a file
+- Username and Token in a file
+- Certificates
+- LDAP
+- Service Accounts
+
+**Authorization in K8s**
+1. RBAC Authorization (Role based)
+2. ABAC Authorization (Attibute based)
+3. Node Authorization
+4. Webhook Mode
+
+All communication between varius master components are secure using the `TLS certificate`
+![alt text](image-10.png)
+
+you can restricthe the communication between pods with `network policies`
+
+## User Authentication in k8s cluster
+- User access the k8s cluster:
+  - Admins
+  - Developers
+  - End users
+  - bots
+
+- K8s connot manage the Users natively
+  - hence you cannot create or list user in k8s
+- k8s relies on external user managment service like `LDAP`
+- you can only manage the k8s service account
+- all user access is managed by the `kube-apiserver`
+- ![alt text](image-11.png)
+- Auth Mechanisam for `kube-apiserver`
+  - Username and passwords in a csv file
+```
+password123,username1,user_id1
+password456,username2,user_id2
+password789,username3,user_id3
+```
+    - `--basic-auth-file=user-details.csv`
+![alt text](image-12.png)
+  - Username and Token in a csv file
+  - Certificates
+  - LDAP
+  - Service Accounts
+
+**Communication between Pods:**
+- `Pods` are isolated from each other
+- by default pod on any node can talk with any pod within a cluster.
+- you can restrict this by setting up a network policy.
