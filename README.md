@@ -1424,3 +1424,39 @@ password789,username3,user_id3
 - `Pods` are isolated from each other
 - by default pod on any node can talk with any pod within a cluster.
 - you can restrict this by setting up a network policy.
+
+## TLS Certificate Authentication: (https://)
+- **TLS Certification**is a cryptographic protocol designed to provide secure communication over a computer network. It ensures data privacy, integrity, and authentication between clients and servers. 
+- with the help of `https` there is no intervention between sender and recevier.
+- `https` is an extension of `http`
+- `RSA` is no longer support as a method for key exchange, it is replaced by [Diffie-Hellman algorithm](https://www.techtarget.com/searchsecurity/definition/Diffie-Hellman-key-exchange) for more secure key exchange method.
+
+### Process
+1. **Handshake Process:** `TLS Handshake`
+   - **Client Hello:** The client sends a "Client Hello" message to the server, which includes the TLS version, cipher suites, and a randomly generated number.
+   - **Server Hello:** The server responds with a "Server Hello" message, selecting the TLS version and cipher suite from the client's list, and provides a randomly generated number.
+2. **Server Authentication and Pre-Master Secret:** 
+     - **Server Certificate:** The server sends its digital certificate to the client, which includes the server’s public key and is issued by a trusted `Certificate Authority (CA).`
+     - **Pre-Master Secret:** The client generates a pre-master secret *encryption session key*, *encrypts it with the server’s public key*, and sends it to the server.
+3. **Session Keys Creation:**
+   - Both the client and the server use the` pre-master secret` along with the previously exchanged random numbers to generate the same session keys, which are symmetric keys used for the session’s encryption and decryption.
+4. **Secure Communication:**
+   - **Change Cipher Spec:** Both client and server send a message to indicate that future messages will be encrypted using the session keys.
+   - **Encrypted Messages:** The client and server communicate securely using symmetric encryption.
+![alt text](image-13.png)
+> The combination of TLS and Asystemtec provides a `robust` security framework, where TLS secures the communication channel and Asystemtec verifies user identities and manages sessions.
+
+- **Symmentric Encryption**
+   1. it is a secure way of encryption
+   2. In symmetric key encryption, the same key is used for both encryption and decryption of data.
+   3. encrypted data and key travells through same network
+   4. hacker can intersept that key while sending and decrypt it.
+   5. **faster** way of authentication
+   
+- **Asymmtric Encryption**
+   1. Asymmetric encryption uses two mathematically connected keys: a public key and a private key.
+   2. The public key is used for encryption of user data, while the private key is used for decryption of user data on the server itself.
+   3. Anyone can use your public key to encrypt a message, but only you (with the private key) can decrypt it.
+   4. `ssh-keygen` to generate the public and private key on the server
+      - for private and public keys you can encrypt data with one and dcrypt wit another
+   5. this authentication is **highly secure** but having **key-pair complexity** and **slow auth**.
