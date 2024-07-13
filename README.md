@@ -1460,3 +1460,37 @@ password789,username3,user_id3
    4. `ssh-keygen` to generate the public and private key on the server
       - for private and public keys you can encrypt data with one and dcrypt wit another
    5. this authentication is **highly secure** but having **key-pair complexity** and **slow auth**.
+
+## TLS certificate in Kubernetes Cluster
+### Certificate and Key extensions:
+![alt text](image-14.png)
+
+- TLS certificates are used to establish secure connection between the Master Node and Workers nodes or a System Admins is accessing the `kube-apiserver` with the help of `Kubectl`.
+- kube-apiserver is itself act as server so need to be secure with `https` connection by the help of `TLS certificate` so it has its own `apiserver.crt` and `apiserver.key` .
+- similarly `etcd-server` also has `etcdserver.crt` and `etcdserver.key`.
+- Admin also requires the `admin.crt` and `admin.key` to access the `kube-apiserver`.
+- similarly the `kube-scheduler` also talks with the `kube-apiserver` to schedule the pods on the worker nodes. So it also requires the TLS certificate and the key `scheduler.crt` and `scheduler.key`
+- Even the Kube-apiserver requires the `apiserver.crt` and `apiserver.key` to talk to `etcd-server`
+![alt text](image-15.png)
+
+### How to generate the TLS certificate for k8s cluster:
+1. **Cluster Certificates**
+   - **Generate the Private Key**
+     - command = `openssl genrsa -out ca.key 2048`
+   - **Generate the Certificate Signing Request (CSR)**
+     - command = `openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr`
+   - **Sign Certificates**
+     - command = `openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt`
+     - `ca.csr` is the cert with no sign
+     - `ca.key` is used to sign the cert
+![Cerificate](image-16.png)
+1. **Client Certificates**
+   - **Generate the Private Key**
+     - command = `openssl genrsa -out admin.key 2048`
+   - **Generate the Certificate Signing Request (CSR)**
+     - command = `openssl req -new -key admin.key -subj "/CN=KUBE-admin" -out admin.csr`
+   - **Sign Certificates**
+     - command = `openssl x509 -req -in admin.csr -signkey admin.key -out admin.crt`
+     - `admin.csr` is the cert with no sign
+     - `admin.key` is used to sign the cert
+     - `admin.crt` is the final signed certificate
