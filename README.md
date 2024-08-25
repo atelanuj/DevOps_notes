@@ -316,6 +316,8 @@ spec:
 - DeamonSet are simillar to ReplicaSets but inly difference is that DeamonSet ensure that every node has at  least one instance of a pod running.
 - when the node gets created DeamonSet automatically creates the pod on the Node.
 - Pods created by the DeamonSet are ignored by the Kube-scheduler.
+- deamonSets does not support scalling inside the Node
+- it supports the Rolling update like Deployments.
     ## Use Cases:
     - running a cluster storage daemon on every node
     - running a *logs collection* daemon on every node
@@ -1454,12 +1456,38 @@ password789,username3,user_id3
    5. **faster** way of authentication
    
 - **Asymmtric Encryption**
-   1. Asymmetric encryption uses two mathematically connected keys: a public key and a private key.
-   2. The public key is used for encryption of user data, while the private key is used for decryption of user data on the server itself.
-   3. Anyone can use your public key to encrypt a message, but only you (with the private key) can decrypt it.
-   4. `ssh-keygen` to generate the public and private key on the server
-      - for private and public keys you can encrypt data with one and dcrypt wit another
-   5. this authentication is **highly secure** but having **key-pair complexity** and **slow auth**.
+   1. Asymmetric encryption uses two mathematically connected keys: a **public** key and a **private** key.
+      1. `ssh-keygen` to generate the private and public keys
+   2. The **public** key is used for encryption of user data, while the **private** key is used for decryption of user data of the same server itself.
+   3. Server send the public key to client
+   4. client uses the public key to encrypt the private key of client
+   5. client sends the encrypted private key to server
+   6. server decrypts the encrypted key with its private key
+   7. client encrypts the data with the clients public key
+   8. client sends the encrypted data to server
+   9.  server decrypts the data with the clients private key which server recived earlier.
+   10. Reads the data.
+   11. Hacker can place its own proxy server in place of actual server
+   12. then client communicates with that hacker server and hacks the data.s
+  
+- **TLS Handshake**
+   1. `SSL/TLS` certs are created by CA authorities.
+   2. Application server sends its public key to CA authority.
+   3. CA authority issues a TLS certificate
+   4. CA authority enclose the application server key init and give **signature** with CA authority server public key.
+      1. `SIGNATURE = Application server public key + CA authority server public key`
+      2. signature is then added in the certificate.
+   5. Now that certificate from CA will be transfered to the application server with application server public key init.
+   6. now the application server sends that signed certificate to the client server
+   7. client server then recives the certificate from application server with application server public key init
+   8. client server then goes to the CA authority of the application server and brings its public key.
+   9. client then verify the SIGNATURE with public key if application server and Public key of CA authority.
+   10. if the SIGNATURE matches then Client establish the connection with that application server, if not then connection is not been established.
+   11. client uses that public key to encrypt the private key of client
+   12. client send that encrypted private key of the client server to application server which was been encrypted by the public key of the application server.
+   13. application server then drypt that client private key with application server private key, and stores that Client private key for that session.
+   14. client encrypts the data with its public key and send to the application server
+   15. application server recives that ecrypted data and drypt it with clients private key and reads the data.
 
 ## TLS certificate in Kubernetes Cluster
 ### Certificate and Key extensions:
@@ -1484,7 +1512,7 @@ password789,username3,user_id3
      - `ca.csr` is the cert with no sign
      - `ca.key` is used to sign the cert
 ![Cerificate](image-16.png)
-1. **Client Certificates**
+2. **Client Certificates**
    - **Generate the Private Key**
      - command = `openssl genrsa -out admin.key 2048`
    - **Generate the Certificate Signing Request (CSR)**
@@ -1494,3 +1522,8 @@ password789,username3,user_id3
      - `admin.csr` is the cert with no sign
      - `admin.key` is used to sign the cert
      - `admin.crt` is the final signed certificate
+
+**To view all the certificates**
+```
+cat /etc/kubernetes/manifests/apiserver.yaml
+```
