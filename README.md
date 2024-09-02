@@ -112,6 +112,27 @@ spec:
           image: nginx:latest
 ```
 ---
+# [StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
+- StatefulSet is a workload API object used to manage stateful applications.
+- A StatefulSet runs a group of Pods, and maintains a sticky identity for each of those Pods. This is useful for managing applications that need persistent storage or a stable, **unique network identity**
+- Manages the deployment and scaling of a set of Pods, and provides guarantees about the ordering and uniqueness of these Pods
+- StatefulSet maintains a sticky identity for each of its Pods.
+- Although individual Pods in a StatefulSet are susceptible to failure, the persistent Pod identifiers make it easier to match existing volumes to the new Pods that replace any that have failed.
+- **StatefulSets are valuable for applications that require one or more of the following.**
+  - Stable, unique network identifiers.
+  - Stable, persistent storage.
+  - Ordered, graceful deployment and scaling.
+  - Ordered, automated rolling updates
+- The storage for a given Pod must either be provisioned by a PersistentVolume Provisioner ([examples here](https://github.com/kubernetes/examples/blob/master/staging/persistent-volume-provisioning/README.md)) based on the requested storage class, or pre-provisioned by an admin. 
+  
+## StatefulSets Diagrams
+![alt text](statefulset_pvc.png)
+![alt text](image-19.png)
+
+## StatefulSets vs Deployment
+
+
+---
 
 ## Imperative Commands to find pods with selected Labels
 `kubectl get pods --selector key=value --no-headers | wc -l`
