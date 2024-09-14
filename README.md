@@ -125,6 +125,7 @@ spec:
 - A StatefulSet runs a group of Pods, and maintains a sticky identity for each of those Pods. This is useful for managing applications that need persistent storage or a stable, **unique network identity**
 - Manages the deployment and scaling of a set of Pods, and provides guarantees about the ordering and uniqueness of these Pods
 - StatefulSet maintains a sticky identity for each of its Pods.
+- Ensures Pods are created, updated, or deleted in a specific order.
 - Although individual Pods in a StatefulSet are susceptible to failure, the persistent Pod identifiers make it easier to match existing volumes to the new Pods that replace any that have failed.
 - **StatefulSets are valuable for applications that require one or more of the following.**
   - Stable, unique network identifiers.
@@ -252,6 +253,26 @@ spec:
     path: "/mnt/data"
 ```
 
+********PersistantVolume without StorageClass.********
+```
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-manual-pv
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: nfs-server.default.svc.cluster.local
+    path: "/path/to/data"
+```
+
+
+
 # PersistentVolumeClaim (PVC)
 
 - A PersistentVolumeClaim is a request for storage by a user. It specifies size, access modes, and optionally, a StorageClass. Kubernetes matches PVCs to PVs based on these specifications
@@ -273,6 +294,27 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: ebs-sc # Optinal
+```
+
+
+*how to use PVC inside the POD defination*
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-container
+    image: nginx
+    volumeMounts: # This subsection defines how volumes are mounted into the container.
+    - name: my-storage # mount name
+      mountPath: "/usr/share/nginx/html" # Mount Path inside container
+  volumes:
+  - name: my-storage
+    persistentVolumeClaim:
+      claimName: my-manual-pvc
 ```
 
 # [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/)
@@ -312,16 +354,17 @@ reclaimPolicy: Retain
 - **PVC Creation Triggers PV Creation**: After the StorageClass is defined, the PVC can be created. Kubernetes will then automatically create a PV based on the specifications in the StorageClass and bind it to the PVC.
 
 **Order**:
-  1. StorageClass
-  2. PersistentVolumeClaim (PVC)
+  - StorageClass
+  -  PersistentVolumeClaim (PVC)
+
 
 2. **Static Provisioning**
 - **PersistentVolume First**: In the case of static provisioning, you manually create the PVs first. These PVs are pre-provisioned by an administrator and are available in the cluster for any PVC to claim.
 - **PVC Creation Binds to PV**: After the PVs are created, you can create PVCs that match the specifications of the available PVs. Kubernetes will bind the PVC to a matching PV.
 
 **Order**:
-  1. PersistentVolume (PV)
-  2. PersistentVolumeClaim (PVC)
+  - PersistentVolume (PV)
+  - PersistentVolumeClaim (PVC)
 ---
 
 ## Imperative Commands to find pods with selected Labels
