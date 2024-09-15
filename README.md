@@ -308,9 +308,15 @@ spec:
   containers:
   - name: my-container
     image: nginx
-    volumeMounts: # This subsection defines how volumes are mounted into the container.
-    - name: my-storage # mount name
-      mountPath: "/usr/share/nginx/html" # Mount Path inside container
+    
+    # This subsection defines how volumes are mounted into the container.
+    volumeMounts: 
+    
+    # mount name
+    - name: my-storage 
+    
+      # Mount Path inside container
+      mountPath: "/usr/share/nginx/html" 
   volumes:
   - name: my-storage
     persistentVolumeClaim:
@@ -1956,3 +1962,103 @@ password789,username3,user_id3
 ```
 cat /etc/kubernetes/manifests/apiserver.yaml
 ```
+
+# [KubeConfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/)
+- To configure the user with the kubeAPI server you need to use the KubeAPI server.
+-  Kubeconfig is a configuration file that contains the information about the **cluster**, **user** and the **authentication information (contexts)**.
+-  It is located inside the `~/.kube/config`
+
+**Clusters**
+- Clusters have information about the different environments.
+  - Development
+  - UAT
+  - Production
+
+
+**Users**
+-  Users have information about the different users.
+-  Which user has access to the which cluster
+   -  Admin user
+   -  Dev user
+   -  Prod user
+-  These user may have different privileges to different cluster.
+
+
+**Contexts**
+- Contexts are use to link the user and cluster together.
+-  It is used to switch between different cluster and user.
+-  For example, you can have a context for the development cluster and another for the production cluster
+-  use need to set the current context in the config file which tells the kubectl to which user to user for which cluster. 
+-  you can also set the working namespace for a context
+
+**To view the Kubeconfig**
+- To view the config file   
+   - `kubectl config view`
+- To use a custom config file
+  - `kubectl config view --kubeconfig=my-custom-config`
+- To change the current context 
+  - `kubectl config use-context <user@cluster>`
+- To see only the configuration information associated with the current context, use the `--minify` flag.
+  - `kubectl config --kubeconfig=config-demo view --minify`
+
+**Example config file**
+```
+apiVersion: v1
+kind: Config
+current-context: user@cluster
+
+clusters:
+- name: development
+  cluster:
+      certificate-authority: ca.crt
+      # to add ca.crt file content in base64 encoded format directly in config file
+      # certificate-authority-data: 
+      server: 0.0.0.0
+- name: test
+  cluster:
+      certificate-authority: ca.crt
+      server: 0.0.0.0
+
+users:
+- name: developer
+  user:
+      client-certificate: admin.crt
+      client-key: admin.key
+- name: experimenter
+  user:
+      client-certificate; admin.crt
+      client-key: admin.key
+
+contexts:
+- name: developer@development
+  context: 
+      cluster: development
+      user: developer 
+      namespace: frontend
+- name: experimenter@test
+  context: 
+      cluster: test
+      user: experimenter
+      namespace: storage
+```
+
+**Add context details to your configuration file:**
+```
+kubectl config --kubeconfig=config-demo set-context dev-frontend --cluster=development --namespace=frontend --user=developer
+kubectl config --kubeconfig=config-demo set-context dev-storage --cluster=development --namespace=storage --user=developer
+kubectl config --kubeconfig=config-demo set-context exp-test --cluster=test --namespace=default --user=experimenter
+```
+>**Note**:
+A file that is used to configure access to a cluster is sometimes called a *kubeconfig file*. This is a generic way of referring to configuration files. It does not mean that there is a file named `kubeconfig`.
+
+**Set the KUBECONFIG environment variable**
+- Linux
+  - `export KUBECONFIG_SAVED="$KUBECONFIG"`
+- Append $HOME/.kube/config to your KUBECONFIG environment variable
+  - `export KUBECONFIG="${KUBECONFIG}:${HOME}/.kube/config`"
+- Windows PowerShell
+  - `$Env:KUBECONFIG_SAVED=$ENV:KUBECONFIG`
+  - `$Env:KUBECONFIG="$Env:KUBECONFIG;$HOME\.kube\config"`
+
+# Kube API groups
+- 
