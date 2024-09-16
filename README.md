@@ -1808,8 +1808,8 @@ etcdctl member <subcommand>
 
 **Authorization in K8s**
 
-1. RBAC Authorization (Role based)
-2. ABAC Authorization (Attibute based)
+1. RBAC Authorization (Role based access control)
+2. ABAC Authorization (Attibute based access control)
 3. Node Authorization
 4. Webhook Mode
 
@@ -2061,4 +2061,72 @@ A file that is used to configure access to a cluster is sometimes called a *kube
   - `$Env:KUBECONFIG="$Env:KUBECONFIG;$HOME\.kube\config"`
 
 # Kube API groups
-- 
+- In Kubernetes, API groups are a way to organize different kinds of API resources, helping to make the API more modular and scalable. This approach allows the introduction of new APIs and versions without disturbing the core API, improving Kubernetes' extensibility. API groups essentially group related resources and provide versioning for these resources
+
+
+**Structure of API Groups:**
+
+`/apis/{group}/{version}/{resource}`
+
+for Example:
+
+`/apis/apps/v1/deployments`
+
+- `apps` is the API group.
+- `v1` is the API version.
+- `deployments` is the resource being accessed.
+
+## Types of API groups:
+1. **Core Group (Legacy or No Group)** **(api)**
+- Also known as the core or legacy API, this group doesn't have a name in the URL.
+- The resources here are some of the core Kubernetes components, like **Pods**, **Services**, **Namespaces**, and **Nodes**.
+- `/api/v1/pods`
+---
+2. **Named Groups** **(apis)**
+- These are groups with names and are organized based on the functionality they serve.
+- Each named group can have different versions (e.g., `v1`, `v2beta`, etc.), allowing backward compatibility and smooth transitions to newer versions.
+- Examples:
+- `apps`: This API group contains resources like **Deployments**, **DaemonSets**, and **StatefulSets**.
+  - `/apis/apps/v1/deployments`
+  
+- `batch`: Handles jobs and cron jobs.
+  - `/apis/batch/v1/jobs`
+
+- `networking.k8s.io`: Deals with network-related resources like **Ingress** and **NetworkPolicies**.
+  - `/apis/networking.k8s.io/v1/ingresses`
+
+- `rbac.authorization.k8s.io`: Manages Role-Based Access Control (RBAC) resources like **Roles** and **RoleBindings**.
+  - `/apis/rbac.authorization.k8s.io/v1/roles`
+---
+3. **Custom Resource Definitions (CRDs)**
+- Kubernetes allows users to define their own APIs by creating `Custom Resource Definitions` (CRDs), which belong to custom groups and provide an extension to Kubernetes' built-in functionality.
+- CRDs can be used to define resources in an organization-specific group.
+- `/apis/custom.group/v1/myresource`
+---
+**Versioning in API Groups**
+
+Kubernetes API groups use versioning (e.g., v1, v2beta1) to ensure backward compatibility.
+Alpha versions (v1alpha1) are experimental and may change.
+Beta versions (v1beta1) are more stable but can still undergo changes.
+Stable versions (v1) are generally considered safe for production use.
+
+---
+**Summary of API Group Types:**
+
+`Core Group`: No named group.
+
+`Named Groups`: Feature-specific groups like apps, batch, networking.k8s.io, etc.
+
+`Custom Groups (CRDs)`: User-defined API groups for extending Kubernetes functionality.
+
+---
+
+# [Authorizations](https://kubernetes.io/docs/reference/access-authn-authz/authorization/):
+- Kubernetes authorization takes place following authentication. Usually, a client making a request must be authenticated (logged in) before its request can be allowed; however, Kubernetes also allows anonymous requests in some circumstances.
+- All parts of an API request must be allowed by some `authorization mechanism` in order to proceed. In other words: access is denied by default.
+
+## [Authorization modes](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules)
+1. RBAC
+2. ABAC
+3. Webhook
+4. Node
