@@ -2130,3 +2130,35 @@ Stable versions (v1) are generally considered safe for production use.
 2. ABAC
 3. Webhook
 4. Node
+---
+### RBAC (Role based access control)
+- RBAC is the default authorization mode in Kubernetes.
+- It is based on the concept of roles and bindings.
+- Roles are collections of permissions.
+- Bindings are used to assign roles to users or groups.
+- in RBAC permissions are not assign directly to the user or group.
+- `Role` and `RoleBinding` are namespace specific.
+- for cluster level you need to use the `ClusterRole`and `ClusterRoleBinding` which covers all namespaces.
+
+**Example:-**
+| User    | Permission| Resource |
+| -------- | ------- | ------- |
+| Admin | read+write+delete    | app1
+| Developer | read     | app2
+---
+1. Define a `generic container` for permissions : a `Role`.
+2. Assign the `permissions` to the `Role`.
+3. Bind the `Role` to the `User` and `Group`.
+
+**Example:-**
+| Role    | Permission| Resource |
+| -------- | ------- | ------- |
+| **AdminRole** <--| read+write+delete    | app1
+| **DeveloperRole** <--| read     | app2
+
+| User    | Role |
+| --------  | ------- |
+| Admin  <-- | **AdminRole**
+| Developer <--| **DeveloperRole**
+---
+![alt text](image-17.png)
