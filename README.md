@@ -9,7 +9,7 @@
 - kubectl get pods --namespace=`dev` --show-labels
 - kubectl config set-context --current --namespace=`namespace-name`
 - kubectl config set-context `context-name` --cluster=`new-cluster-name` --user=new-`user-name` --namespace=`new-namespace`
-- kubectl describe `pod`/`service`/`deployment`/`replicaset`
+- kubectl describe `pod`/`service`/`deployment`/`replicaset`/`role`/`rolebinding`
 - kubectl run `name` --image=`image` --command -- `cmd` `args1` `args2`
 - kubectl run `name` --image=`image` --dry-run=client -o yaml > `name`.yaml
 - kubectl run `name` --image=`image` -- `args1` ... `argsN` # default commands and custom arguments
@@ -66,7 +66,18 @@
 - kubectl drain `node_name` # this will make the node unshedulable and make the pods spawn on other nodes
 - kubectl uncordon `node_name` # this will make the node schedulable
 - kubectl cordon `node_name` # this will make the node unschedulable
-
+- kubectl auth `can-i` create `deployment` ----> yes
+- kubectl auth `can-i` delete `nodes` ------> no
+- kubectl auth `can-i` create `deployment` --as `dev-user` ----> no
+- kubectl auth `can-i` create `pods` --as `dev-user` -----> yes
+- kubectl auth `can-i` create `pods` --as `dev-user` --namespace `test` ----> no
+- kubectl get `roles` to list all roles in the current namespace
+- kubectl get `rolebindings`
+- kubectl describe role `<role_name>`
+- kubectl describe rolebindings `rolebinding_name`
+- kubectl create rolebinding `rolebinding_name` --role=`role_name` --user=`user_name` --group=`group_name`
+- kubectl create role `role_name` --verb=`list,create,delete` --resource=`pods`
+ 
 ---
 
 # [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
@@ -1599,7 +1610,7 @@ Example 1:
 
 ### Differences in `init` and `Sidecar` cinatiner
 
-`**Init container**`
+**Init container**
 
 - They run to completion before any application containers start within a pod.
 - Their primary role is to set up the correct environment for the app to run.
@@ -1608,7 +1619,7 @@ Example 1:
 - init containers do not support lifecycle, livenessProbe, readinessProbe, or startupProbe
 - Init containers share the same resources (CPU, memory, network) with the main application containers
 
-`**Sidecar**`
+ **Sidecar**
 
 - They run alongside the main application container, providing additional capabilities like logging, monitoring, or data synchronization.
 - Unlike init containers, sidecar containers remain running for the life of the pod.
@@ -2130,15 +2141,22 @@ Stable versions (v1) are generally considered safe for production use.
 2. ABAC
 3. Webhook
 4. Node
+
+![alt text](image-18.png)
 ---
-### RBAC (Role based access control)
+## RBAC (Role based access control)
 - RBAC is the default authorization mode in Kubernetes.
 - It is based on the concept of roles and bindings.
 - Roles are collections of permissions.
 - Bindings are used to assign roles to users or groups.
 - in RBAC permissions are not assign directly to the user or group.
 - `Role` and `RoleBinding` are namespace specific.
+- A Role always sets permissions within a particular namespace; when you create a Role, you have to specify the namespace it belongs in.
 - for cluster level you need to use the `ClusterRole`and `ClusterRoleBinding` which covers all namespaces.
+- to check which Authorization modes are enabled on the cluster you can use the 
+  - `kubectl describe pod kube-apiserver-controlplane -n kube-system | grep "--authorization-mode"` 
+
+
 
 **Example:-**
 | User    | Permission| Resource |
@@ -2146,9 +2164,13 @@ Stable versions (v1) are generally considered safe for production use.
 | Admin | read+write+delete    | app1
 | Developer | read     | app2
 ---
+
+
 1. Define a `generic container` for permissions : a `Role`.
 2. Assign the `permissions` to the `Role`.
 3. Bind the `Role` to the `User` and `Group`.
+
+
 
 **Example:-**
 | Role    | Permission| Resource |
@@ -2156,10 +2178,134 @@ Stable versions (v1) are generally considered safe for production use.
 | **AdminRole** <--| read+write+delete    | app1
 | **DeveloperRole** <--| read     | app2
 
+
+
 | User    | Role |
 | --------  | ------- |
 | Admin  <-- | **AdminRole**
 | Developer <--| **DeveloperRole**
 ---
-![alt text](image-17.png)
 
+
+![alt text](image-17.png)
+---
+
+### Role and RoleBinding
+
+**Example:**
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: pod-reader
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+```
+
+To link the User to the `Role` we need to use the `RoleBinding`.
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: default
+subjects:
+# You can specify more than one "subject"
+- kind: User
+  name: jane # "name" is case sensitive
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: pod-reader # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+```
+
+- RoleBinding also operates on the `namespace` level.
+
+**commands**
+- `kubectl get roles` to list all roles in the current namespace
+- `kubectl get rolebindings` 
+- `kubectl describe role <role_name>`
+
+## **Check acess**
+
+To see if the use has the access to a perticuler resource in the cluster
+
+- kubectl auth `can-i` create deployment ----> yes
+- kubectl auth `can-i` delete nodes ------> no
+- kubectl auth `can-i` create deployment --as `dev-user` ----> no
+- kubectl auth `can-i` create pods --as `dev-user` -----> yes
+- kubectl auth `can-i` create pods --as `dev-user` --namespace test ----> no
+---
+
+### ClusterRole and ClusterRoleBindings
+- `ClusterRole` and `ClusterRoleBindings` are used to manage access at the cluster level. They are similar to `Role` and `RoleBindings`.
+- with the help of CLusterRole the `user` can access the `resources` of other namespaces too.
+- *Use-cases*
+  - **Node**
+    - delete Node
+    - Create Node
+    - update Node
+  - **Storage**
+    - delete PV
+    - Create PV
+    - update PV
+
+**Namespaced Resources**
+- Role
+- RoleBindings
+- Deployments
+- Pods
+- ReplicaSets
+- ConfigMaps
+- Secretes
+- Services
+- PVC
+- Jobs
+
+**Cluster Scoped Resources**
+- ClusterRole
+- ClusterRoleBindings
+- PV
+- nodes
+- CertificateSingningRequests
+- namespaces
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # "namespace" omitted since ClusterRoles are not namespaced
+  name: secret-reader
+rules:
+- apiGroups: [""]
+  #
+  # at the HTTP level, the name of the resource for accessing Secret
+  # objects is "secrets"
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+```
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+# This cluster role binding allows anyone in the "manager" group to read secrets in any namespace.
+kind: ClusterRoleBinding
+metadata:
+  name: read-secrets-global
+subjects:
+- kind: Group
+  name: manager # Name is case sensitive
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: secret-reader
+  apiGroup: rbac.authorization.k8s.io
+```
