@@ -1,3 +1,4 @@
+![[Pasted image 20241012142358.png]]
 # Kubernetes Important Commands
 
 - kubectl get `nodes`/`pods`/`services`/`deployments`/`replicasets`/`namespaces`
@@ -2235,7 +2236,7 @@ roleRef:
 - `kubectl get rolebindings` 
 - `kubectl describe role <role_name>`
 
-## **Check acess**
+**Check acess**
 
 To see if the use has the access to a perticuler resource in the cluster
 
@@ -2309,3 +2310,5 @@ roleRef:
   name: secret-reader
   apiGroup: rbac.authorization.k8s.io
 ```
+
+
