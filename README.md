@@ -1,4 +1,4 @@
-![[Pasted image 20241012142358.png]]
+![alt text](https://kubernetes.io/_common-resources/images/flower.svg)
 # Kubernetes Important Commands
 
 - kubectl get `nodes`/`pods`/`services`/`deployments`/`replicasets`/`namespaces`
