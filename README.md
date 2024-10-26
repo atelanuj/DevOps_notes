@@ -1974,7 +1974,7 @@ password789,username3,user_id3
 cat /etc/kubernetes/manifests/apiserver.yaml
 ```
 
-# [KubeConfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/)
+## [KubeConfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/)
 - To configure the user with the kubeAPI server you need to use the KubeAPI server.
 -  Kubeconfig is a configuration file that contains the information about the **cluster**, **user** and the **authentication information (contexts)**.
 -  It is located inside the `~/.kube/config`
@@ -2071,7 +2071,7 @@ A file that is used to configure access to a cluster is sometimes called a *kube
   - `$Env:KUBECONFIG_SAVED=$ENV:KUBECONFIG`
   - `$Env:KUBECONFIG="$Env:KUBECONFIG;$HOME\.kube\config"`
 
-# Kube API groups
+## Kube API groups
 - In Kubernetes, API groups are a way to organize different kinds of API resources, helping to make the API more modular and scalable. This approach allows the introduction of new APIs and versions without disturbing the core API, improving Kubernetes' extensibility. API groups essentially group related resources and provide versioning for these resources
 
 
@@ -2087,7 +2087,7 @@ for Example:
 - `v1` is the API version.
 - `deployments` is the resource being accessed.
 
-## Types of API groups:
+### Types of API groups:
 1. **Core Group (Legacy or No Group)** **(api)**
 - Also known as the core or legacy API, this group doesn't have a name in the URL.
 - The resources here are some of the core Kubernetes components, like **Pods**, **Services**, **Namespaces**, and **Nodes**.
@@ -2132,7 +2132,7 @@ Stable versions (v1) are generally considered safe for production use.
 
 ---
 
-# [Authorizations](https://kubernetes.io/docs/reference/access-authn-authz/authorization/):
+## [Authorizations](https://kubernetes.io/docs/reference/access-authn-authz/authorization/):
 - Kubernetes authorization takes place following authentication. Usually, a client making a request must be authenticated (logged in) before its request can be allowed; however, Kubernetes also allows anonymous requests in some circumstances.
 - All parts of an API request must be allowed by some `authorization mechanism` in order to proceed. In other words: access is denied by default.
 
@@ -2144,7 +2144,7 @@ Stable versions (v1) are generally considered safe for production use.
 
 ![alt text](image-18.png)
 ---
-## RBAC (Role based access control)
+### RBAC (Role based access control)
 - RBAC is the default authorization mode in Kubernetes.
 - It is based on the concept of roles and bindings.
 - Roles are collections of permissions.
@@ -2392,7 +2392,7 @@ spec:
     command: ["sleep", "5000"]
 ```
 ---
-# Image Security
+## [Image Security](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
 - to connect to private container registry other than docker
 - image: `registry_url/user_Account/Image_repo`
   - ![alt text](image-20.png)
@@ -2431,3 +2431,95 @@ spec:
     command: ["sleep", "5000"]
   imagePullSecrets:
   - docker-registry
+```
+---
+
+## Docker Security
+- container and host share the same kernel
+- All the process run by the container are ran on the host itself but in there own namespace
+- Process of containers are isolated from each other
+- by default the docker run process as  a root user inside the container
+	- you can choose the `user` while running the container ex- `user 1000`
+- use can build a `Dockerfile` with `user 1000` then any process docker run inside the docker container will be run as  a `user 1000`
+
+
+```
+FROM ubuntu
+
+USER 1000
+```
+
+
+```
+docker run my-ubuntu-image sleep 3600 # this will run the sleep command as a USER 1000 not the ROOT inside the container 
+```
+
+- `ROOT` user within the container is not as good as the `ROOT` user in the host
+	- Docker host doesn't have the privilege to reboot the host
+	- **`docker run --cap-add MAC_ADMIN ubuntu`** : This option adds a specific capability to the container.
+		- **`MAC_ADMIN`** stands for Mandatory Access Control (MAC) administration. This capability allows the container to modify or administer MAC policies. Such policies control access to system resources, enforcing security boundaries.
+		- *Note*: Granting the `MAC_ADMIN` capability should be done carefully, as it gives the container additional privileges, potentially increasing security risks.
+	- **`docker run --cap-drop KILL ubuntu`** : This option removes a specific capability from the container.
+		- **`KILL` capability**: Normally, this capability allows processes within the container to send signals to other processes (e.g., to terminate them). By dropping it, you prevent processes within the container from sending signals to terminate other processes (unless they own the processes).
+		- **Security Context**: Dropping capabilities like `KILL` is part of a security best practice called the "principle of least privilege." By reducing the container's privileges, you minimize the risk of it being used to compromise the system.
+	- **`docker run --priviledge ubuntu`** : This flag grants the container almost all the host’s kernel capabilities. Specifically
+		- The container has access to all devices on the host, allowing it to perform operations that are usually restricted.
+		- The container can change certain settings and modify system configurations, which are typically protected (e.g., mount filesystems, change kernel parameters).
+		- It bypasses many of Docker's usual isolation mechanisms, essentially giving the container root access to the host machine’s kernel and hardware.
+	>**Note**: **Security Risk**: Running a container with the `--privileged` flag is risky because it grants nearly unrestricted access to the `host` system. This should only be used in trusted environments or when absolutely necessary, such as in cases requiring direct hardware access (e.g., for containers managing low-level system operations or running software that needs kernel-level permissions).
+---
+## Docker security Context in Kubernetes:
+- To Implement the docker like capabilities via k8s
+- to apply at `pod` level add `securityContext` field
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  securityContext:
+    runAsUser: 1000
+  containers:
+  - name: ubuntu_conatiner
+    image: ubuntu
+    command: ["sleep", "3600"]
+```
+To apply capabilities at `container` level inside the pod
+```
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+spec:
+  containers:
+  - name: ubuntu_conatiner
+    image: ubuntu
+    command: ["sleep", "3600"]
+    securityContext:
+      runAsUser: 1000
+      capabilities:
+        add: ["MAC_ADMIN"]
+```
+
+>**Note**: Capabilities cannot be added at the `POD` level it can be only added at the `container` level
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-pod
+spec:
+  securityContext:
+    runAsUser: 1001
+  containers:
+  -  image: ubuntu
+     name: web
+     command: ["sleep", "5000"] # This command will run as USER 1002
+     securityContext:
+      runAsUser: 1002
+
+  -  image: ubuntu
+     name: sidecar
+     command: ["sleep", "5000"] # This command will run as USER 1001
