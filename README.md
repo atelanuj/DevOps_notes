@@ -2523,3 +2523,160 @@ spec:
   -  image: ubuntu
      name: sidecar
      command: ["sleep", "5000"] # This command will run as USER 1001
+```
+---
+## [Network Policy](https://earthly.dev/blog/kubernetes-network-policies/)
+- you can only use the `NetworkPolicy` object in k8s when you have deployed a Networking solution inside the cluster.
+  - **Antrea**
+    - calico
+    - cilium
+  - **kube-router**
+    - Romana
+    - Weave-net
+- If you want to control traffic flow at the IP address or port level (OSI layer 3 or 4), NetworkPolicies allow you to specify rules for traffic flow within your cluster, and also between Pods and the outside world.
+- Your cluster must use a network plugin that supports `NetworkPolicy` enforcement.
+- by default any pod in any node within cluster can communicates with any pod.
+- With Network policies attached to a pod you can control the ingress(incomming) and egress(Outgoing) traffic from a pod.
+**User Case**
+- Suppose we have a 3-tier application
+	- front-end
+	- back-end
+	- Database
+- we want only back-end pod can communicates with the database pod, not the front-end pod
+- we can achive this with the help of `Network policy` object in K8s.
+
+[Network](https://earthly.dev/blog/assets/images/kubernetes-network-policies/T9DWs2n.png)
+![alt text](image-21.png) 
+
+**FEATURES OF NETWORK POLICIES**
+- **Namespaced resources:** Network policies are defined as Kubernetes objects and are applied to a specific namespace. This allows you to control traffic flow between pods in different namespaces.
+- **Additive:** In Kubernetes, network policies are additive. This means that if you create multiple policies that select the same pod, all the rules specified in each policy will be combined and applied to the pod.
+- **Label-based traffic selection:** Kubernetes network policies allow you to select traffic based on pod labels. This provides a flexible way to control traffic flow within your cluster.
+- **Protocol and port selection:** You can use network policies to specify which protocols (TCP-UDP-SCTP) and ports are allowed for incoming and outgoing traffic. This helps to ensure that only authorized traffic is allowed between pods.
+- **Integration with network plugins:** Kubernetes network policies are implemented by network plugins. This allows you to use the network plugin of your choice and take advantage of its features and capabilities.
+
+![alt text](image-22.png)
+
+Create a pod `database` with `labels` 
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: database-pod
+  labels:
+    app: database
+spec:
+  containers:
+  -  image: mysql
+     name: database-pod
+     command: ["sleep", "5000"]
+```
+
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-pod-NP
+spec:
+  podSelector:
+    matchLabels:
+      app: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: back-end
+      ports:
+        - protocol: TCP
+          port: 3306
+```
+
+Now to enable the traffic from another `namespace`, below will allow traffic from `back-end` pod from `prod` namespace to `database` pod
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-pod-NP
+spec:
+  podSelector:
+    matchLabels:
+      app: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: back-end
+        - namespaceSelector:
+            matchLabels:
+              ns: prod
+      ports:
+        - protocol: TCP
+          port: 3306
+```
+
+To control the outgoing traffic `engress` from the `database` pod to the `back-end` pod
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-pod-NP
+spec:
+  podSelector:
+    matchLabels:
+      app: database
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: back-end
+        - namespaceSelector:
+            matchLabels:
+              env: prod
+      ports:
+        - protocol: TCP
+          port: 3306
+  
+  engress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: back-end
+        - namespaceSelector:
+            matchLabels:
+              ns: prod
+      ports:
+        - protocol: TCP
+          port: 3303
+```
+
+to add external server to connect to the database pod, then you need to allow that server IP
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-pod-NP
+spec:
+  podSelector:
+    matchLabels:
+      app: database
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 172.17.0.0/16
+            except:
+              - 172.17.1.0/24
+      ports:
+        - protocol: TCP
+          port: 6875
+```
