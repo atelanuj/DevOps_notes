@@ -2557,6 +2557,7 @@ spec:
 
 ![alt text](image-22.png)
 
+
 Create a pod `database` with `labels` 
 
 ```
@@ -2673,10 +2674,135 @@ spec:
   ingress:
     - from:
         - ipBlock:
-            cidr: 172.17.0.0/16
+            cidr: 172.17.0.0/16 # add range of Ip address
             except:
               - 172.17.1.0/24
       ports:
         - protocol: TCP
           port: 6875
 ```
+---
+### **Kubectx**:
+
+With this tool, you don't have to make use of lengthy “kubectl config” commands to switch between contexts. This tool is particularly useful to switch context between clusters in a multi-cluster environment.
+
+**Installation**:
+```
+sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
+sudo ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx
+```
+**Syntax**:
+
+To list all contexts:
+
+```
+kubectx
+```
+
+
+
+To switch to a new context:
+```
+kubectx <context_name>
+```
+
+To switch back to previous context:
+```
+kubectx -
+```
+
+
+
+To see current context:
+```
+kubectx -c
+```
+---
+### **Kubens**:
+
+This tool allows users to switch between namespaces quickly with a simple command.
+
+**Installation**:
+```
+sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
+sudo ln -s /opt/kubectx/kubens /usr/local/bin/kubens
+```
+**Syntax**:
+
+To switch to a new namespace:
+```
+kubens <new_namespace>
+```
+
+To switch back to previous namespace:
+```
+kubens -
+```
+---
+# Storage in Kubernetes
+
+## Storge in Docker:
+- **Docker File system in host:**
+  - by default docker stores data in host at
+  - Images are stored in images folder
+  - container data is stored in container folder
+  - volumes in volumes folder
+    ```
+    /var/lib/docker
+        aufs
+        containers
+        image
+        volumes
+    ```
+
+- **Docker layer archetrcutre:**
+  - each instruction in docker file has its own layer
+  - If the some of the layers is already used by the some other docker file previously then docker will not create the same layer again it will reuse it
+    - this will save Docker image build time
+    -  this will save Docker image size
+ -  **type of layers in docker**
+    -  *Image layer*
+       -  This is a `readOnly` layer, where user cannot modify the containts of it.
+       -  if you want to modify let say application source code then docker will automatically creates the copy of it from the image layer to the container layer where you can be able to modify it.
+    -  *Container layer*
+       -  This layer can be modify `read-write` by the user
+       -  container layer is temp layer and only created when the container is created and deleted when the container is bing deleted.
+    -  Once the image is created its layers are been shared by other images too.
+    -  Once the container is deleted the data which is been changed also been deleted, to persists data we need to use the docker volmes.
+- **Docker Volumes**
+  - *Volume Mount*
+    - with volume mount you can mount the volume in host with inside the file directory in docker container
+    - Even if the container gets deleted the data still remains inside the volume in the host.
+      ```
+      docker create volume volume1
+      docker run -v volume1:/app myimage
+      ```
+  - *Bind Mount*
+    - Now suppose you want to mount a directory of host to the directory of container you can achive this with the help of Bind mount
+      ```
+      docker run -v /temp/app:/app myimage
+      docker run --mount type=bind,source=/data/mysql,target=/var/lib/mysql mysql
+      ```
+- **Storage Drivers**
+  - Docker automatically choose the Storage drive based on OS.
+  -  Docker supports multiple storage drivers
+     -  AUFS
+     -  ZFS
+     -  BTRFS
+     -  Device Mapper
+     -  Overlay
+     -  Overlay2
+---
+## Docker Volumes
+- **Docker Volumes** are used to persist data even after the container is deleted.
+- You can use the Volume Drive to presist the data to AWS, GCP or Azure.
+  - local
+  - Azure file Storage
+  - Convoy
+  - Digital Ocean Block Storage
+  - NetApp
+  - etc.
+  ```
+  docker run -it --name mysql --volume-driver rexray/ebs --mount src=ebs-vol,target=/var/lib/mysql mysql
+  ```
+  - this will provsion a AWS EBS to store the data from the Docker container volume to Cloud.
