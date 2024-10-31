@@ -1831,12 +1831,13 @@ you can restricthe the communication between pods with `network policies`
 
 ## User Authentication in k8s cluster
 
+- To Create a user in Kubernetes you need to create a `User.crt` and `User.key` and add it in the Kubernetes `Kubeconfig` file
+- `User.crt` file must be signed by Kubernetes `CA authority`.
 - User access the k8s cluster:
   - Admins
   - Developers
   - End users
   - bots
-
 - K8s connot manage the Users natively
   - hence you cannot create or list user in k8s
 - k8s relies on external user managment service like `LDAP`
@@ -1845,12 +1846,11 @@ you can restricthe the communication between pods with `network policies`
 - ![alt text](image-11.png)
 - Auth Mechanisam for `kube-apiserver`
   - Username and passwords in a csv file
-
-```
-password123,username1,user_id1
-password456,username2,user_id2
-password789,username3,user_id3
-```
+    ```
+    password123,username1,user_id1
+    password456,username2,user_id2
+    password789,username3,user_id3
+    ```
 
     - `--basic-auth-file=user-details.csv`
 ![alt text](image-12.png)
@@ -1993,8 +1993,92 @@ cat /etc/kubernetes/manifests/apiserver.yaml
    -  Dev user
    -  Prod user
 -  These user may have different privileges to different cluster.
+  
+**Creating User in Kubernetes**
+-  Kubernetes does not have a concept of users, instead it relies on certificates and would only trust certificates signed by its own CA.
+- To get the CA certificates for our cluster, easiest way is to access the master node.
+- Because we run on kind, our master node is a docker container.
+- The CA certificates exists in the `/etc/kubernetes/pki` folder by default.
+```
+docker exec -it rbac-control-plane bash
 
+ls -l /etc/kubernetes/pki
+total 60
+-rw-r--r-- 1 root root 1135 Sep 10 01:38 apiserver-etcd-client.crt
+-rw------- 1 root root 1675 Sep 10 01:38 apiserver-etcd-client.key
+-rw-r--r-- 1 root root 1143 Sep 10 01:38 apiserver-kubelet-client.crt
+-rw------- 1 root root 1679 Sep 10 01:38 apiserver-kubelet-client.key
+-rw-r--r-- 1 root root 1306 Sep 10 01:38 apiserver.crt
+-rw------- 1 root root 1675 Sep 10 01:38 apiserver.key
+-rw-r--r-- 1 root root 1066 Sep 10 01:38 ca.crt
+-rw------- 1 root root 1675 Sep 10 01:38 ca.key
+drwxr-xr-x 2 root root 4096 Sep 10 01:38 etcd
+-rw-r--r-- 1 root root 1078 Sep 10 01:38 front-proxy-ca.crt
+-rw------- 1 root root 1679 Sep 10 01:38 front-proxy-ca.key
+-rw-r--r-- 1 root root 1103 Sep 10 01:38 front-proxy-client.crt
+-rw------- 1 root root 1675 Sep 10 01:38 front-proxy-client.key
+-rw------- 1 root root 1679 Sep 10 01:38 sa.key
+-rw------- 1 root root  451 Sep 10 01:38 sa.pub
 
+exit the container
+```
+```
+cd kubernetes/rbac
+docker cp rbac-control-plane:/etc/kubernetes/pki/ca.crt ca.crt
+docker cp rbac-control-plane:/etc/kubernetes/pki/ca.key ca.key
+```
+- As mentioned before, Kubernetes has no concept of users, it trusts certificates that is signed by its CA.
+This allows a lot of flexibility as Kubernetes lets you bring your own auth mechanisms, such as [OpenID](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens) Connect or OAuth.
+- First thing we need to do is create a certificate signed by our Kubernetes CA.
+- Easy way to create a cert is use openssl and the easiest way to get openssl is to simply run a container:
+  ```
+  docker run -it -v ${PWD}:/work -w /work -v ${HOME}:/root/ --net host alpine sh
+
+  apk add openssl
+  ```
+- Let's create a certificate for `Bob Smith`:
+  ```
+  #start with a private key
+  openssl genrsa -out bob.key 2048
+  ```
+Now we have a key, we need a certificate signing request (CSR).
+We also need to specify the groups that Bob belongs to.
+Let's pretend Bob is part of the Shopping team and will be developing applications for the Shopping
+```
+openssl req -new -key bob.key -out bob.csr -subj "/CN=Bob Smith/O=Shopping"
+```
+Use the CA to generate our certificate by signing our CSR.
+We may set an expiry on our certificate as well
+```
+openssl x509 -req -in bob.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out bob.crt -days 1
+```
+**Building a kube config**
+Let's install kubectl in our container to make things easier:
+```
+apk add curl nano
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+mv ./kubectl /usr/local/bin/kubectl
+```
+We'll be trying to avoid messing with our current kubernetes config.
+So lets tell kubectl to look at a new config that does not yet exists
+```
+export KUBECONFIG=~/.kube/new-config
+```
+Create a cluster entry which points to the cluster and contains the details of the CA certificate:
+```
+kubectl config set-cluster dev-cluster --server=https://127.0.0.1:52807 \
+--certificate-authority=ca.crt \
+--embed-certs=true
+
+#see changes 
+nano ~/.kube/new-config
+```
+```
+kubectl config set-credentials bob --client-certificate=bob.crt --client-key=bob.key --embed-certs=true\
+kubectl config set-context dev --cluster=dev-cluster --namespace=shopping --user=bob
+kubectl config use-context dev
+```
 **Contexts**
 - Contexts are use to link the user and cluster together.
 -  It is used to switch between different cluster and user.
