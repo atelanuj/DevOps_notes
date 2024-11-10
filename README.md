@@ -405,9 +405,16 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
+
+  # Adding a NFS PV
   nfs:
     server: nfs-server.default.svc.cluster.local
     path: "/path/to/data"
+
+  # Or you can provion a EBS volume as PV
+  awsElasticBlockStore:
+    volumeID: <volume-id>
+    fstype: ext4
 ```
 
 
@@ -420,6 +427,10 @@ spec:
 1. **Requested Storage**: The size of the storage needed.
 2. **Access Modes**: How the storage should be accessed.
 3. **StorageClass**: (Optional) Specifies the desired StorageClass for dynamic provisioning.
+4. every `PVC` binds to a single `PV` k8s finds `PV` with sufficient requirements. you can also use the `labels` to bind to the right volume.
+5. if no new `PV` is available then `PVC` will go in `pending` state.
+6. multiple `PVCs` cannot bind to the same `PV`.
+   1. A PVC (Persistent Volume Claim) is exclusively bound to a PV (Persistent Volume). The binding is a one-to-one mapping, using a ClaimRef, which is a bi-directional binding between the PersistentVolume and the PersistentVolumeClaim.
 
 ```yml
 apiVersion: v1
@@ -465,9 +476,11 @@ spec:
 # [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/)
 
 - A StorageClass provides a way to describe the "classes" of storage available in a Kubernetes cluster. 
+- **StorageClasses help Kubernetes *dynamically* provision PVs.**
 - If you are leveraging dynamic provisioning, you should create the StorageClass first. This is because the StorageClass is responsible for dynamically provisioning the PersistentVolumes when a PersistentVolumeClaim (PVC) is created.
 - A StorageClass provides a way for administrators to describe the classes of storage they offer
 - It abstracts the underlying storage provider (like AWS EBS, GCE PD, NFS, etc.) and allows dynamic provisioning of PVs.
+- kubernetes communicates with the **Cloud providers API** to provisions a volume.
 
 **Key Attributes**:
   1. **Provisioner**: Specifies the volume plugin (e.g., kubernetes.io/aws-ebs, kubernetes.io/gce-pd, kubernetes.io/nfs).
