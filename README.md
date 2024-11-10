@@ -97,7 +97,7 @@
 
 ---
 
-```
+```yml
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -148,7 +148,7 @@ spec:
 - StatefulSets currently require a Headless Service to be responsible for the network identity of the Pods
 - StatefulSets do not provide any guarantees on the termination of pods when a StatefulSet is deleted. To achieve ordered and graceful termination of the pods in the StatefulSet, it is possible to scale the StatefulSet down to 0 prior to deletion.
 
-```
+```yml
 apiVersion: v1
 kind: Service
 metadata:
@@ -356,7 +356,7 @@ spec:
   - **StorageClass**: Links the PV to a StorageClass for dynamic provisioning.
 
 AWS EBS PV
-```
+```yml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -374,7 +374,7 @@ allowedTopologies:
     values:
     - us-east-2c
 ```
-```
+```yml
 ---
 apiVersion: v1
 kind: PersistantVolume
@@ -393,7 +393,7 @@ spec:
 ```
 
 ********PersistantVolume without StorageClass.********
-```
+```yml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -421,7 +421,7 @@ spec:
 2. **Access Modes**: How the storage should be accessed.
 3. **StorageClass**: (Optional) Specifies the desired StorageClass for dynamic provisioning.
 
-```
+```yml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -438,7 +438,7 @@ spec:
 
 *how to use PVC inside the POD defination*
 
-```
+```yml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -474,7 +474,7 @@ spec:
   2. **Parameters**: Configuration options specific to the provisioner.
   3. **Reclaim Policy**: Defaults for dynamically provisioned PVs.
 
-```
+```yml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -568,7 +568,7 @@ kubectl taint nodes node1 key2=value2:NoSchedule
 
 ### Applying Tolerence to Pod
 
-```
+```yml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -599,7 +599,7 @@ spec:
 
 Example :
 
-```
+```yml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -638,7 +638,7 @@ Add a label to a particular node
 
 Example: This manifest describes a Pod that has a `requiredDuringSchedulingIgnoredDuringExecution` node affinity,`size=large or size=small`. This means that the pod will get scheduled only on a node that has a `size=large or size=small`
 
-```
+```yml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -716,7 +716,7 @@ spec:
 
 ---
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -759,7 +759,7 @@ spec:
 - one DaemonSet, covering all nodes, would be used for each type of daemon.
 ![alt text](image.png)
 
-```
+```yml
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -834,7 +834,7 @@ spec:
 - Manifests are standard Pod definitions in JSON or YAML format in a specific directory. Use the `staticPodPath: <the directory>` field in the [kubelet configuration file](https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/), which periodically scans the directory and creates/deletes static Pods as YAML/JSON files **appear/disappear there**.
 - to modify the kubelet use the [`KubeletConfiguration`](https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/) YAML file which is the recommended way.
 
-```
+```yml
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 address: "192.168.0.8"
@@ -861,7 +861,7 @@ to apply this file
   - `systemctl restart kubelet`
 - `kubectl run --restart=Never --image=busybox static-busybox --dry-run=client -o yaml --command -- sleep 1000 > /etc/kubernetes/manifests/static-busybox.yaml`
 
-```
+```shell
 controlplane ~ ➜  ls -lrt /etc/kubernetes/manifests/
 total 16
 -rw------- 1 root root 2406 Apr  7 16:35 etcd.yaml
@@ -887,7 +887,7 @@ total 16
 ---
 **Docker File**
 
-```
+```Dockerfile
 FROM busybox
 ADD ./_output/local/bin/linux/amd64/kube-scheduler /usr/local/bin/kube-scheduler
 ```
@@ -900,7 +900,7 @@ ADD ./_output/local/bin/linux/amd64/kube-scheduler /usr/local/bin/kube-scheduler
 - Save it as [my-scheduler.yaml](https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/admin/sched/my-scheduler.yaml)
 - in the deployment use this
 
-```
+```yml
 ---
 # **my-scheduler-config.yaml**
 apiVersion: kubescheduler.config.k8s.io/v1
@@ -969,12 +969,12 @@ spec:
     - name: config-volume
       configMap:
         name: my-scheduler-config
-```
+```yml
 
 ---
 **STEP 3:** How to use the custom schduler into pod definations.
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -987,7 +987,7 @@ spec:
   
   # This is how you can add the custom scheduler to pod.
   schedulerName: my-scheduler
-```
+```yml
 
 **Example**:
 
@@ -1030,7 +1030,7 @@ kube-system    **my-scheduler**                           1/1     Running   0   
 
 - you can set the priority of pod tobe scheduled
 
-```
+```yml
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
@@ -1345,7 +1345,7 @@ spec:
 
 Example 2 of `Command` and `args`
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -1381,7 +1381,7 @@ spec:
   - protects you from **accidental** (or unwanted) updates that could cause applications outages
   - **improves performance** of your cluster by significantly reducing load on kube-apiserver, by closing watches for ConfigMaps marked as immutable.
 
-```
+```yml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -1405,7 +1405,7 @@ immutable: true
 - Diclarative
   - Adding through the pod defination
 
-```
+```yml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -1440,7 +1440,7 @@ There are four different ways that you can use a ConfigMap to configure a contai
 
 1. Using `env` in pod defination
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -1462,7 +1462,7 @@ spec:
 
 1. **Using `valueFrom` in pod defination**
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -1492,7 +1492,7 @@ spec:
 
 2. **Using `envFrom` in pod defination**
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -1569,7 +1569,7 @@ spec:
     - kubectl create secret generic `app-secret` --from-file=`app-secret.properties`
 - Diclarative
 
-```
+```yml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -1611,7 +1611,7 @@ spec:
 
 1. `valueFrom` injecting secret as a `Single` Environment variables
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -1631,7 +1631,7 @@ spec:
 
 2. Mount secret from a `volume`
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -1707,7 +1707,7 @@ spec:
 
 Example 1:
 
-```
+```yml
     apiVersion: v1
     kind: Pod
     metadata:
@@ -1765,7 +1765,7 @@ Example 1:
 
 Example 2:
 
-```
+```yml
     apiVersion: v1
     kind: Pod
     metadata:
@@ -2225,7 +2225,7 @@ kubectl config use-context dev
   - `kubectl config --kubeconfig=config-demo view --minify`
 
 **Example config file**
-```
+```yml
 apiVersion: v1
 kind: Config
 current-context: user@cluster
@@ -2383,7 +2383,7 @@ Stable versions (v1) are generally considered safe for production use.
 
 **Example:**
 
-```
+```yml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2397,7 +2397,7 @@ rules:
 
 To link the User to the `Role` we need to use the `RoleBinding`.
 
-```
+```yml
 apiVersion: rbac.authorization.k8s.io/v1
 # This role binding allows "jane" to read pods in the "default" namespace.
 # You need to already have a Role named "pod-reader" in that namespace.
@@ -2468,7 +2468,7 @@ To see if the use has the access to a perticuler resource in the cluster
 - CertificateSingningRequests
 - namespaces
 
-```
+```yml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2483,7 +2483,7 @@ rules:
   verbs: ["get", "watch", "list"]
 ```
 
-```
+```yml
 apiVersion: rbac.authorization.k8s.io/v1
 # This cluster role binding allows anyone in the "manager" group to read secrets in any namespace.
 kind: ClusterRoleBinding
@@ -2537,7 +2537,7 @@ roleRef:
 - To prevent Kubernetes from automatically injecting credentials for a specified ServiceAccount or the `default` ServiceAccount, set the `automountServiceAccountToken` field in your Pod specification to `false`.
 >**Note**: After Kubernetes version `1.24` the token has expiration time 
 
-```
+```yml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -2547,7 +2547,7 @@ metadata:
   namespace: my-namespace
 ```
 
-```
+```yml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2559,7 +2559,7 @@ rules:
   verbs: ["get", "watch", "list"
 ```
 
-```
+```yml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -2575,7 +2575,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -2590,7 +2590,7 @@ spec:
 ```
 
 To remove the `default` SA from pod
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -2616,7 +2616,7 @@ kubectl create secret docker-registry docker-creds \
 --docker-password= registry-password \ 
 --docker-email= registry-user@org.com
 ```
-```
+```yml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -2630,7 +2630,7 @@ data:
 ```
 
 - Attach the `secret` to the `pod` with `imagePullSecrets` field in pod definition 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -2655,9 +2655,8 @@ spec:
 - use can build a `Dockerfile` with `user 1000` then any process docker run inside the docker container will be run as  a `user 1000`
 
 
-```
+```Dockerfile
 FROM ubuntu
-
 USER 1000
 ```
 
@@ -2683,7 +2682,7 @@ docker run my-ubuntu-image sleep 3600 # this will run the sleep command as a USE
 ## Docker security Context in Kubernetes:
 - To Implement the docker like capabilities via k8s
 - to apply at `pod` level add `securityContext` field
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -2698,7 +2697,7 @@ spec:
     command: ["sleep", "3600"]
 ```
 To apply capabilities at `container` level inside the pod
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -2717,7 +2716,7 @@ spec:
 
 >**Note**: Capabilities cannot be added at the `POD` level it can be only added at the `container` level
 
-```
+```yml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -2772,7 +2771,7 @@ spec:
 
 Create a pod `database` with `labels` 
 
-```
+```yml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -2786,7 +2785,7 @@ spec:
      command: ["sleep", "5000"]
 ```
 
-```
+```yml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -2808,7 +2807,7 @@ spec:
 ```
 
 Now to enable the traffic from another `namespace`, below will allow traffic from `back-end` pod from `prod` namespace to `database` pod
-```
+```yml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -2833,7 +2832,7 @@ spec:
 ```
 
 To control the outgoing traffic `engress` from the `database` pod to the `back-end` pod
-```
+```yml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -2871,7 +2870,7 @@ spec:
 ```
 
 to add external server to connect to the database pod, then you need to allow that server IP
-```
+```yml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
