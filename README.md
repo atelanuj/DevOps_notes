@@ -2958,7 +2958,7 @@ kubens -
   - Images are stored in images folder
   - container data is stored in container folder
   - volumes in volumes folder
-    ```
+    ```shell
     /var/lib/docker
         aufs
         containers
@@ -3022,3 +3022,6 @@ kubens -
 - CRI - Container Runtime Interface
 - CNI - Container Network Interface
 - CSI - Container Storage Interface
+
+## PersistantVolume (Refer above)
+## PersistentVolumeClaim (Refer above)
