@@ -411,12 +411,25 @@ spec:
     server: nfs-server.default.svc.cluster.local
     path: "/path/to/data"
 
-  # Or you can provion a EBS volume as PV
+  # Or you can add existing EBS volume as PV
   awsElasticBlockStore:
     volumeID: <volume-id>
     fstype: ext4
 ```
-
+```yml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-log
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: 100Mi
+  hostPath:
+    path: /pv/log
+```
 
 
 # PersistentVolumeClaim (PVC)
@@ -445,7 +458,15 @@ spec:
       storage: 5Gi
   storageClassName: ebs-sc # Optinal
 ```
+`persistentVolumeReclaimPolicy` has three option `retain`, `recycle` and `deleted`
 
+The `persistentVolumeReclaimPolicy` in Kubernetes specifies what should happen to a `PersistentVolume (PV)` when its associated PersistentVolumeClaim (PVC) is deleted.
+- **`Retain`**
+**Use Case:** Useful when data should be preserved after a Pod stops using it, such as for auditing or backup purposes. Administrators can later manually manage the volume (e.g., delete or reassign it to a new claim).
+- **`Delete`**
+**Use Case:** Common in cloud environments where dynamically provisioned volumes are frequently created and removed. Ideal when storage needs to be automatically freed up to avoid unnecessary costs.
+- **`Recycle`** *(**Deprecated** in many Kubernetes versions)*
+**Use Case:** Used in older Kubernetes setups where basic cleansing of data on release was acceptable. It is now mostly replaced by more secure methods.
 
 *how to use PVC inside the POD defination*
 
@@ -472,6 +493,7 @@ spec:
     persistentVolumeClaim:
       claimName: my-manual-pvc
 ```
+>Note: `spec.containers.volumeMounts.name` must be same as `spec.volumes.name` and policy should be same for both `PV` and `PVC` to bind else the pvc will be in `pending` state, if pod is using the `PVC` and you delete the `PVC` then the `PVC` will stuck in **terminating** state once the `pod` is deleted `pvc` will also delete and `PV` will be **released**
 
 # [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/)
 
@@ -493,10 +515,24 @@ kind: StorageClass
 metadata:
   name: ebs-sc
 provisioner: kubernetes.io/aws-ebs
-parameters:
+parameters: # This is provider specific
   type: gp2
   zones: us-east-1a,us-east-1b
 reclaimPolicy: Retain
+```
+
+```yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-example
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ebs-sc
 ```
 
 **Workflow**:
@@ -507,16 +543,19 @@ reclaimPolicy: Retain
 
 ### Static vs Dynamic provisioning of PV in K8s
 
-1. **Dynamic Provisioning**
+#### **Dynamic Provisioning**
 - **StorageClass First**: If you're using dynamic provisioning, you should create the StorageClass first. This is because when a PersistentVolumeClaim (PVC) is created with a storageClassName, Kubernetes uses the StorageClass to dynamically provision a PersistentVolume that matches the PVC's requirements.
+- **PersistentVolume (PV)** : This will be automatically created by `StorageClass`
 - **PVC Creation Triggers PV Creation**: After the StorageClass is defined, the PVC can be created. Kubernetes will then automatically create a PV based on the specifications in the StorageClass and bind it to the PVC.
+  - Give `StorageClass` name in `PVC` defination
 
 **Order**:
   - StorageClass
+  - PersistentVolume (PV)
   -  PersistentVolumeClaim (PVC)
 
 
-2. **Static Provisioning**
+#### **Static Provisioning**
 - **PersistentVolume First**: In the case of static provisioning, you manually create the PVs first. These PVs are pre-provisioned by an administrator and are available in the cluster for any PVC to claim.
 - **PVC Creation Binds to PV**: After the PVs are created, you can create PVCs that match the specifications of the available PVs. Kubernetes will bind the PVC to a matching PV.
 
