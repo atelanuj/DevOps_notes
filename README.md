@@ -3189,6 +3189,60 @@ kubens -
 
 ## Network Namespace
 
+A **Network Namespace** is a Linux kernel feature that provides isolation of network resources between different processes. It allows multiple containers, applications, or processes to have separate network stacks, making it a key building block for containerized environments like Docker and Kubernetes.
+
+### **How Network Namespaces Work**
+
+When you create a network namespace:
+
+1.  A new virtual network stack is created.
+2.  The new namespace is isolated from the host and other namespaces.
+3.  Virtual network interfaces (veth pairs) are often used to connect the namespace to the host or other namespaces.
+
+### **Key Features of Network Namespaces**
+
+1.  **Isolation**:
+
+    -   Each network namespace has its own network stack, including:
+        -   **Interfaces** (e.g., `eth0`, `lo`)
+        -   **Routing Tables**
+        -   **Firewall Rules (iptables)**
+        -   **Sockets**
+2.  **Multiple Instances**:
+
+    -   Multiple network namespaces can exist simultaneously on the same host.
+    -   Each namespace can have different network configurations.
+3.  **Default Namespace**:
+
+    -   By default, all processes and applications use the host's network namespace.
+    -   When a new namespace is created, it starts empty, without any network interfaces.
+4.  **Independence**:
+
+    -   Changes made in one namespace (e.g., adding routes or interfaces) do not affect others.
+
+### **Creating and Managing Network Namespaces**
+
+1.  **List Existing Namespaces**:
+
+    `ip netns list`
+
+2.  **Create a New Namespace**:
+
+    `ip netns add my_namespace`
+
+3.  **Run Commands in a Namespace**:
+
+    `ip netns exec my_namespace <command>`
+
+**Example:**
+
+  `ip netns exec my_namespace ip a`
+
+4.  **Delete a Namespace**:
+
+    `ip netns delete my_namespace`
+
+
 ## Docker networking
 
 1. **None**
