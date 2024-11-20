@@ -57,7 +57,7 @@
 - kubectl taint nodes `node-name` key=value:NoSchedule
 - kubectl taint nodes `node-name` key=value:NoSchedule- # remove taint
 - kubectl taint nodes `node-name` key=value:NoExecute
-- kubectl taint nodes `node-name` key=value:NoExecute-  # remove taint
+- kubectl taint nodes `node-name` key=value:NoExecute- # remove taint
 - kubectl cordon `node-name` # Marks a node as unschedulable, preventing new pods from being scheduled on it.
 - kubectl uncordon `node-name` # Marks a node as schedulable, allowing new pods to be scheduled on it.
 - kubectl cp `file.txt` `pod-name`:`/path/to/dir` # Copies a file from the local machine to a pod.
@@ -77,7 +77,7 @@
 - kubectl describe rolebindings `rolebinding_name`
 - kubectl create rolebinding `rolebinding_name` --role=`role_name` --user=`user_name` --group=`group_name`
 - kubectl create role `role_name` --verb=`list,create,delete` --resource=`pods`
- 
+
 ---
 
 # [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
@@ -104,7 +104,7 @@ kind: Deployment
 metadata:
     name: myDeployment
 
-    # This are the Deployment labels 
+    # This are the Deployment labels
     labels:
         app: myApp
         env: dev
@@ -112,13 +112,13 @@ spec:
    replicas: 3
 
    # the Selector selects the pod with specific labels
-   selector: 
+   selector:
       matchLabels:
       tier: front-end
-   
+
    # template  defines the PodSpec for the new pods being created and what Labels it contains
    template:
-      metadata: 
+      metadata:
       name: testpod
       labels:
           tier: front-end
@@ -203,7 +203,7 @@ spec:
 
 ## Volume Claim Templates
 
-- You can set the `.spec.volumeClaimTemplates` field to create a `PersistentVolumeClaim`. 
+- You can set the `.spec.volumeClaimTemplates` field to create a `PersistentVolumeClaim`.
 - StatefulSet Pods have a **unique identity** that consists of an ordinal, a stable network identity, and stable storage. The identity sticks to the Pod, regardless of which node it's (re)scheduled on.
 
 ## StatefulSets Diagrams
@@ -212,6 +212,7 @@ spec:
 ![alt text](image-19.png)
 
 ## StatefulSets vs Deployment
+
 Kubernetes offers multiple ways to manage application workloads, including **StatefulSets** and **Deployments**. Each is designed for specific use cases and provides different functionalities. Below is a detailed comparison.
 
 ### 1. Overview
@@ -318,7 +319,9 @@ spec:
         requests:
           storage: 1Gi
 ```
+
 #### Deployment Example
+
 ```yml
 apiVersion: apps/v1
 kind: Deployment
@@ -343,19 +346,21 @@ spec:
 
 # [PersistentVolume (PV) Provisioning](https://github.com/kubernetes/examples/blob/master/staging/persistent-volume-provisioning/README.md)
 
-- A PersistentVolume is a piece of storage in the Kubernetes cluster that has been *provisioned by an administrator* or *dynamically using StorageClasses*.
+- A PersistentVolume is a piece of storage in the Kubernetes cluster that has been _provisioned by an administrator_ or _dynamically using StorageClasses_.
 - The admin must define StorageClass objects that describe named "classes" of storage offered in a cluster.
 - When configuring a StorageClass object for persistent volume provisioning, the admin will need to describe the type of **provisioner** to use and the **parameters** that will be used by the provisioner when it provisions a PersistentVolume belonging to the class.
 - The provisioner field must be specified as it determines what `volume plugin` is used for provisioning PVs.
-- The parameters field contains the parameters that describe volumes belonging to the storage class. Different parameters may be accepted *depending on the provisioner*.
+- The parameters field contains the parameters that describe volumes belonging to the storage class. Different parameters may be accepted _depending on the provisioner_.
 
 **Key Attributes:**
-  - **Capacity**: The size of the storage.
-  - **Access Modes**: Defines how the volume can be mounted (e.g., ReadWriteOnce, ReadOnlyMany, ReadWriteMany).
-  - **Reclaim Policy**: Determines what happens to the PV after the PVC is deleted (e.g., Retain, Recycle, Delete).
-  - **StorageClass**: Links the PV to a StorageClass for dynamic provisioning.
+
+- **Capacity**: The size of the storage.
+- **Access Modes**: Defines how the volume can be mounted (e.g., ReadWriteOnce, ReadOnlyMany, ReadWriteMany).
+- **Reclaim Policy**: Determines what happens to the PV after the PVC is deleted (e.g., Retain, Recycle, Delete).
+- **StorageClass**: Links the PV to a StorageClass for dynamic provisioning.
 
 AWS EBS PV
+
 ```yml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -374,6 +379,7 @@ allowedTopologies:
     values:
     - us-east-2c
 ```
+
 ```yml
 ---
 apiVersion: v1
@@ -384,7 +390,7 @@ metadata:
     type: local
 spec:
   storageClassName: ebs-sc
-  capacity: 
+  capacity:
     storage: 50Gi
   accessModes:
     - ReadWriteOnce
@@ -392,7 +398,8 @@ spec:
     path: "/mnt/data"
 ```
 
-********PersistantVolume without StorageClass.********
+**\*\*\*\***PersistantVolume without StorageClass.**\*\*\*\***
+
 ```yml
 apiVersion: v1
 kind: PersistentVolume
@@ -416,6 +423,7 @@ spec:
     volumeID: <volume-id>
     fstype: ext4
 ```
+
 ```yml
 apiVersion: v1
 kind: PersistentVolume
@@ -431,12 +439,12 @@ spec:
     path: /pv/log
 ```
 
-
 # PersistentVolumeClaim (PVC)
 
 - A PersistentVolumeClaim is a request for storage by a user. It specifies size, access modes, and optionally, a StorageClass. Kubernetes matches PVCs to PVs based on these specifications
 
 **Key Attributes**:
+
 1. **Requested Storage**: The size of the storage needed.
 2. **Access Modes**: How the storage should be accessed.
 3. **StorageClass**: (Optional) Specifies the desired StorageClass for dynamic provisioning.
@@ -458,17 +466,19 @@ spec:
       storage: 5Gi
   storageClassName: ebs-sc # Optinal
 ```
+
 `persistentVolumeReclaimPolicy` has three option `retain`, `recycle` and `deleted`
 
 The `persistentVolumeReclaimPolicy` in Kubernetes specifies what should happen to a `PersistentVolume (PV)` when its associated PersistentVolumeClaim (PVC) is deleted.
-- **`Retain`**
-**Use Case:** Useful when data should be preserved after a Pod stops using it, such as for auditing or backup purposes. Administrators can later manually manage the volume (e.g., delete or reassign it to a new claim).
-- **`Delete`**
-**Use Case:** Common in cloud environments where dynamically provisioned volumes are frequently created and removed. Ideal when storage needs to be automatically freed up to avoid unnecessary costs.
-- **`Recycle`** *(**Deprecated** in many Kubernetes versions)*
-**Use Case:** Used in older Kubernetes setups where basic cleansing of data on release was acceptable. It is now mostly replaced by more secure methods.
 
-*how to use PVC inside the POD defination*
+- **`Retain`**
+  **Use Case:** Useful when data should be preserved after a Pod stops using it, such as for auditing or backup purposes. Administrators can later manually manage the volume (e.g., delete or reassign it to a new claim).
+- **`Delete`**
+  **Use Case:** Common in cloud environments where dynamically provisioned volumes are frequently created and removed. Ideal when storage needs to be automatically freed up to avoid unnecessary costs.
+- **`Recycle`** _(**Deprecated** in many Kubernetes versions)_
+  **Use Case:** Used in older Kubernetes setups where basic cleansing of data on release was acceptable. It is now mostly replaced by more secure methods.
+
+_how to use PVC inside the POD defination_
 
 ```yml
 apiVersion: v1
@@ -479,35 +489,37 @@ spec:
   containers:
   - name: my-container
     image: nginx
-    
+
     # This subsection defines how volumes are mounted into the container.
-    volumeMounts: 
-    
+    volumeMounts:
+
     # mount name
-    - name: my-storage 
-    
+    - name: my-storage
+
       # Mount Path inside container
-      mountPath: "/usr/share/nginx/html" 
+      mountPath: "/usr/share/nginx/html"
   volumes:
   - name: my-storage
     persistentVolumeClaim:
       claimName: my-manual-pvc
 ```
->Note: `spec.containers.volumeMounts.name` must be same as `spec.volumes.name` and policy should be same for both `PV` and `PVC` to bind else the pvc will be in `pending` state, if pod is using the `PVC` and you delete the `PVC` then the `PVC` will stuck in **terminating** state once the `pod` is deleted `pvc` will also delete and `PV` will be **released**
+
+> Note: `spec.containers.volumeMounts.name` must be same as `spec.volumes.name` and policy should be same for both `PV` and `PVC` to bind else the pvc will be in `pending` state, if pod is using the `PVC` and you delete the `PVC` then the `PVC` will stuck in **terminating** state once the `pod` is deleted `pvc` will also delete and `PV` will be **released**
 
 # [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/)
 
-- A StorageClass provides a way to describe the "classes" of storage available in a Kubernetes cluster. 
-- **StorageClasses help Kubernetes *dynamically* provision PVs.**
+- A StorageClass provides a way to describe the "classes" of storage available in a Kubernetes cluster.
+- **StorageClasses help Kubernetes _dynamically_ provision PVs.**
 - If you are leveraging dynamic provisioning, you should create the StorageClass first. This is because the StorageClass is responsible for dynamically provisioning the PersistentVolumes when a PersistentVolumeClaim (PVC) is created.
 - A StorageClass provides a way for administrators to describe the classes of storage they offer
 - It abstracts the underlying storage provider (like AWS EBS, GCE PD, NFS, etc.) and allows dynamic provisioning of PVs.
 - kubernetes communicates with the **Cloud providers API** to provisions a volume.
 
 **Key Attributes**:
-  1. **Provisioner**: Specifies the volume plugin (e.g., kubernetes.io/aws-ebs, kubernetes.io/gce-pd, kubernetes.io/nfs).
-  2. **Parameters**: Configuration options specific to the provisioner.
-  3. **Reclaim Policy**: Defaults for dynamically provisioned PVs.
+
+1. **Provisioner**: Specifies the volume plugin (e.g., kubernetes.io/aws-ebs, kubernetes.io/gce-pd, kubernetes.io/nfs).
+2. **Parameters**: Configuration options specific to the provisioner.
+3. **Reclaim Policy**: Defaults for dynamically provisioned PVs.
 
 ```yml
 apiVersion: storage.k8s.io/v1
@@ -537,31 +549,35 @@ spec:
 
 **Workflow**:
 
-  - **Create the StorageClass**: Define the storage characteristics and provisioner.
-  - **Create the PVC**: Reference the StorageClass in the PVC specification.
-  - **Kubernetes Automatically Creates the PV**: Kubernetes uses the provisioner to create the storge.
+- **Create the StorageClass**: Define the storage characteristics and provisioner.
+- **Create the PVC**: Reference the StorageClass in the PVC specification.
+- **Kubernetes Automatically Creates the PV**: Kubernetes uses the provisioner to create the storge.
 
 ### Static vs Dynamic provisioning of PV in K8s
 
 #### **Dynamic Provisioning**
+
 - **StorageClass First**: If you're using dynamic provisioning, you should create the StorageClass first. This is because when a PersistentVolumeClaim (PVC) is created with a storageClassName, Kubernetes uses the StorageClass to dynamically provision a PersistentVolume that matches the PVC's requirements.
 - **PersistentVolume (PV)** : This will be automatically created by `StorageClass`
 - **PVC Creation Triggers PV Creation**: After the StorageClass is defined, the PVC can be created. Kubernetes will then automatically create a PV based on the specifications in the StorageClass and bind it to the PVC.
   - Give `StorageClass` name in `PVC` defination
 
 **Order**:
-  - StorageClass
-  - PersistentVolume (PV)
-  -  PersistentVolumeClaim (PVC)
 
+- StorageClass
+- PersistentVolume (PV)
+- PersistentVolumeClaim (PVC)
 
 #### **Static Provisioning**
+
 - **PersistentVolume First**: In the case of static provisioning, you manually create the PVs first. These PVs are pre-provisioned by an administrator and are available in the cluster for any PVC to claim.
 - **PVC Creation Binds to PV**: After the PVs are created, you can create PVCs that match the specifications of the available PVs. Kubernetes will bind the PVC to a matching PV.
 
 **Order**:
-  - PersistentVolume (PV)
-  - PersistentVolumeClaim (PVC)
+
+- PersistentVolume (PV)
+- PersistentVolumeClaim (PVC)
+
 ---
 
 ## Imperative Commands to find pods with selected Labels
@@ -581,7 +597,7 @@ spec:
 - Taints and tolerations work together to ensure that pods are not scheduled onto **inappropriate** nodes.
 - One or more taints are applied to a node; this marks that the node should not accept any pods that do not tolerate the taints
 - Taints and Tolerations does not tell pod to go on specific node
-- *Taints and Tolerations only tells accept pods on the node with certain tolerations.*
+- _Taints and Tolerations only tells accept pods on the node with certain tolerations._
 - if you want to restrict a certain pod on a single node then you have to use the node **Affinity**.
 - Taint is alredy placed on masterNode which tells the scduler not to schedule pods on the masterNode to view which taint effect is applied on the master node use below command.
   - `kubectl describe node kubemaster | grep Taint`
@@ -598,7 +614,7 @@ spec:
   - No new Pods will be scheduled on the tainted node unless they have a matching toleration. Pods currently running on the node are not evicted.
 - **PreferNoSchedule**
   - `PreferNoSchedule` is a "preference" or "soft" version of `NoSchedule`.
-  - The control plane will try to avoid placing a Pod that does not tolerate the taint on the node, *but it is not guaranteed*.
+  - The control plane will try to avoid placing a Pod that does not tolerate the taint on the node, _but it is not guaranteed_.
 
 ---
 
@@ -608,7 +624,7 @@ To Apply the Taint on the Node
 
 `kubectl taint nodes node1 key1=value1:NoSchedule`
 
-To  remove the taint from the node:
+To remove the taint from the node:
 
 `kubectl taint nodes node1 key1=value1:NoSchedule-`
 
@@ -675,7 +691,7 @@ Add a label to a particular node
 `kubectl label nodes <node_name> key=value`
 
 ### Limitations
->
+
 > NodeSelector will not be able to help in complex senerios such as
 >
 > - size=large or size=small
@@ -685,7 +701,7 @@ Add a label to a particular node
 
 # [Node Affinity](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/)
 
-- with the help of Node Affinity , you can control the scheduling of pods  onto nodes more granularly using various criteria like
+- with the help of Node Affinity , you can control the scheduling of pods onto nodes more granularly using various criteria like
 - It is an extension of node selectors which allows you to specify more flexible rules about where to place your pods by specifying certain requirements.
 
 Example: This manifest describes a Pod that has a `requiredDuringSchedulingIgnoredDuringExecution` node affinity,`size=large or size=small`. This means that the pod will get scheduled only on a node that has a `size=large or size=small`
@@ -705,7 +721,7 @@ spec:
             operator: In
             values: # The Pod will scheduled on the nodes that have at least one of these value.
             - large
-            - small            
+            - small
   containers:
   - name: nginx
     image: nginx
@@ -715,19 +731,19 @@ spec:
 ## Node Affinity types
 
 1. **`required`DuringScheduling`Ignored`DuringExecution**
-     - Pods with this affinity rule will only be scheduled on nodes that meet the specified requirements. However, if a node loses the label that made it eligible after the pod is scheduled, the pod will still continue to run on that node.
+   - Pods with this affinity rule will only be scheduled on nodes that meet the specified requirements. However, if a node loses the label that made it eligible after the pod is scheduled, the pod will still continue to run on that node.
 2. **`Preferred`DuringScheduling`Ignored`DuringExecution**
-     - Pods with this affinity rule will prefer to be scheduled on nodes that meet the specified requirements, but they are not strictly required to. If no nodes match the preferred requirements, the pod can still be scheduled on other nodes.
-  
+   - Pods with this affinity rule will prefer to be scheduled on nodes that meet the specified requirements, but they are not strictly required to. If no nodes match the preferred requirements, the pod can still be scheduled on other nodes.
+
 | Syntax | DuringScheduling | DuringExecution |
-| ----------- | ----------- | --------------- |
-| Type1 | Required | Ignored |
-| Type2 | preferred | Ignored |
-| Type3 | Required | Required |
+| ------ | ---------------- | --------------- |
+| Type1  | Required         | Ignored         |
+| Type2  | preferred        | Ignored         |
+| Type3  | Required         | Required        |
 
 ### Taints and Tolerence & Node Affinity
 
-- You can use both  taints and tolerations & Node affinity to granular control over the Pod scheduling on the specific nodes.
+- You can use both taints and tolerations & Node affinity to granular control over the Pod scheduling on the specific nodes.
 
 - **what if we applied taint to specific node and Node Affinity to a pod to be schedule on the specific node only without tolerance set what will happen?**
   - When the scheduler attempts to place the pod onto a node, it evaluates the Node Affinity rules against the labels of each node in the cluster.
@@ -739,6 +755,7 @@ spec:
 # [Resource Requests and Limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)
 
 - **Requests**: Requests specify the minimum amount of resources (CPU and memory) that a pod needs to run.
+
   - When a pod is scheduled onto a node, Kubernetes ensures that the node has enough available resources to satisfy the pod's resource requests.
   - Requests are used by the **scheduler** to determine the best node for placing a pod.
 
@@ -788,16 +805,18 @@ spec:
 ```
 
 **Note**:
->Kubernetes doesn't allow you to specify CPU resources with a precision finer than `1m or 0.001 CPU`. To avoid accidentally using an invalid CPU quantity, it's useful to specify CPU units using the milliCPU form instead of the decimal form when using less than `1 CPU` unit.
->For example, you have a Pod that uses `5m or 0.005 CPU` and would like to decrease its CPU resources. By using the decimal form, it's harder to spot that `0.0005 CPU` is an invalid value, while by using the milliCPU form, it's easier to spot that `0.5m` is an invalid value.
->Limits and requests for `memory` are measured in bytes. You can express memory as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. You can also use the power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki. For example, the following represent roughly the same value:
-  `128974848, 129e6, 129M,  128974848000m, 123Mi`
->Pay attention to the case of the suffixes. If you request `400m` of memory, this is a request for 0.4 bytes. Someone who types that probably meant to ask for 400 mebibytes (`400Mi`) or 400 megabytes (`400M`).
+
+> Kubernetes doesn't allow you to specify CPU resources with a precision finer than `1m or 0.001 CPU`. To avoid accidentally using an invalid CPU quantity, it's useful to specify CPU units using the milliCPU form instead of the decimal form when using less than `1 CPU` unit.
+> For example, you have a Pod that uses `5m or 0.005 CPU` and would like to decrease its CPU resources. By using the decimal form, it's harder to spot that `0.0005 CPU` is an invalid value, while by using the milliCPU form, it's easier to spot that `0.5m` is an invalid value.
+> Limits and requests for `memory` are measured in bytes. You can express memory as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. You can also use the power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki. For example, the following represent roughly the same value:
+> `128974848, 129e6, 129M,  128974848000m, 123Mi`
+> Pay attention to the case of the suffixes. If you request `400m` of memory, this is a request for 0.4 bytes. Someone who types that probably meant to ask for 400 mebibytes (`400Mi`) or 400 megabytes (`400M`).
+
 ---
 
 # [DeamonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)
 
-- DeamonSet are simillar to ReplicaSets but inly difference is that DeamonSet ensure that every node has at  least one instance of a pod running.
+- DeamonSet are simillar to ReplicaSets but inly difference is that DeamonSet ensure that every node has at least one instance of a pod running.
 - when the node gets created DeamonSet automatically creates the pod on the Node.
 - Pods created by the DeamonSet are ignored by the Kube-scheduler.
 - deamonSets does not support scalling inside the Node
@@ -805,11 +824,11 @@ spec:
 
 ## Use Cases
 
-  - running a cluster storage daemon on every node
-  - running a *logs collection* daemon on every node
-  - running a *node monitoring* daemon on every node
+- running a cluster storage daemon on every node
+- running a _logs collection_ daemon on every node
+- running a _node monitoring_ daemon on every node
 - one DaemonSet, covering all nodes, would be used for each type of daemon.
-![alt text](image.png)
+  ![alt text](image.png)
 
 ```yml
 apiVersion: apps/v1
@@ -862,8 +881,9 @@ spec:
 `kubectl apply -f DeamonSet.yml`
 
 ## Running Pods on select Nodes
->
->If you specify a `.spec.template.spec.nodeSelector`, then the DaemonSet controller will create Pods on nodes which match that **node selector**. Likewise if you specify a `.spec.template.spec.affinity`, then DaemonSet controller will create Pods on nodes which match that **node affinity**. If you do not specify either, then the DaemonSet controller will create Pods on all nodes.
+
+> If you specify a `.spec.template.spec.nodeSelector`, then the DaemonSet controller will create Pods on nodes which match that **node selector**. Likewise if you specify a `.spec.template.spec.affinity`, then DaemonSet controller will create Pods on nodes which match that **node affinity**. If you do not specify either, then the DaemonSet controller will create Pods on all nodes.
+
 ---
 
 # [Static Pods](https://kubernetes.io/docs/tasks/configure-pod-container/static-pod/)
@@ -877,7 +897,7 @@ spec:
 - Kubelet does not manage the Deployment and Replicasset it only manages the Pod
 - Static pods are visible to the Kube-Apiserver, but does not control from there
 - Kubelet also runs on the master node in Kubernetes to provision the master components as static pods.
-  
+
 **There are two way to craete a Static pod**
 
 1. **Filesystem-hosted static Pod manifest**
@@ -904,7 +924,8 @@ to apply this file
 
 `kubectl apply -f kubelet-config.yaml`
 
-- `staticPodPath: "/etc/kubernetes/manifests"` is were the static-pod manifest are stored this path is not same always *refer the kubelet config file for the mention path*
+- `staticPodPath: "/etc/kubernetes/manifests"` is were the static-pod manifest are stored this path is not same always _refer the kubelet config file for the mention path_
+
   - `cat /var/lib/kubelet/config.yaml` look for `staticPodPath`
 
   or
@@ -930,6 +951,7 @@ total 16
 - you can even run multiple schedulers simultaneously alongside the default scheduler.
 
 ---
+
 **STEP 1:**
 
 - Package your scheduler binary into a container image.
@@ -937,6 +959,7 @@ total 16
 - `Docker Build -t` and `Docker Push` to push the Image to Docker Hub (or another registry). refer k8s documentation
 
 ---
+
 **Docker File**
 
 ```Dockerfile
@@ -945,6 +968,7 @@ ADD ./_output/local/bin/linux/amd64/kube-scheduler /usr/local/bin/kube-scheduler
 ```
 
 ---
+
 **STEP 2:** Define a Kubernetes Deployment for the scheduler
 
 - you have your scheduler in a container image
@@ -960,7 +984,7 @@ kind: KubeSchedulerConfiguration
 profiles:
   - schedulerName: my-scheduler
 leaderElection:
-  leaderElect: false 
+  leaderElect: false
 
 ---
 # **my-scheduler-configmap.yaml**
@@ -977,7 +1001,7 @@ kind: ConfigMap
 metadata:
   creationTimestamp: null
   name: my-scheduler-config
-  namespace: kube-system   
+  namespace: kube-system
 
 ---
 # **my-scheduler.yml**
@@ -1021,9 +1045,10 @@ spec:
     - name: config-volume
       configMap:
         name: my-scheduler-config
-```yml
+```
 
 ---
+
 **STEP 3:** How to use the custom schduler into pod definations.
 
 ```yml
@@ -1036,10 +1061,10 @@ spec:
   containers:
   - name: nginx
     image: nginx
-  
+
   # This is how you can add the custom scheduler to pod.
   schedulerName: my-scheduler
-```yml
+```
 
 **Example**:
 
@@ -1058,6 +1083,7 @@ kube-system    **my-scheduler**                           1/1     Running   0   
 ```
 
 ---
+
 `kubectl get events -o wide`
 
 `kubectl logs <scheduler_name> -n <name_space>`
@@ -1110,7 +1136,7 @@ spec:
 
 ## [Filtering](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/#kube-scheduler-implementation)
 
-- Filter which nodes are not  suitable for running the pod, e.g., lack of resource or taints and tolerations
+- Filter which nodes are not suitable for running the pod, e.g., lack of resource or taints and tolerations
 
 ## [Scoring](https://discuss.kubernetes.io/t/kube-pod-scoring-criteria/20743)
 
@@ -1158,19 +1184,19 @@ These Plugins are pluged to **Extention points**
 
 ```
 controlplane kubernetes-metrics-server on  master ➜  kubectl top node
-NAME           CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
-controlplane   258m         0%     1084Mi          0%        
-node01         118m         0%     268Mi           0%        
+NAME           CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
+controlplane   258m         0%     1084Mi          0%
+node01         118m         0%     268Mi           0%
 ```
 
 - `kubectl top pod` to view resources consumption of pods.
 
 ```
 controlplane kubernetes-metrics-server on  master ➜  kubectl top pod
-NAME       CPU(cores)   MEMORY(bytes)   
-elephant   15m          32Mi            
-lion       1m           18Mi            
-rabbit     102m         14Mi            
+NAME       CPU(cores)   MEMORY(bytes)
+elephant   15m          32Mi
+lion       1m           18Mi
+rabbit     102m         14Mi
 ```
 
 ## Logging in K8s
@@ -1195,7 +1221,7 @@ IP:           10.0.0.2
 IPs:
   IP:  10.0.0.2
 Containers:
-  **my-container:** 
+  **my-container:**
     Container ID:   docker://abcdefg1234567890
     Image:          my-image:latest
     Image ID:       docker-pullable://my-image@sha256:abcdefg1234567890
@@ -1277,6 +1303,7 @@ To rollback to a previous version
 - The Deployment controller supports two different strategies for rolling updates:
 
 1. **Recreate**
+
    - In this strategy, all existing Pods are killed one at a time, and new ones are created to replace them.
    - In the strategy user will faces the downtime of application during the update.
 
@@ -1286,11 +1313,12 @@ To rollback to a previous version
 
 ![alt text](image-2.png)
 
-![alt text](image-3.png)  ![alt text](image-4.png)
+![alt text](image-3.png) ![alt text](image-4.png)
 
 There are two ways to update the deployment
 
 1. **Manually**
+
    - The user can manually update the deployment by changing the image version in the deployment manifest. `kubectl edit deployment <deployment-name>`
    - or using commandline `kubectl set image deployment/<deployment-name> <container-name>=<new-image-name>`
 
@@ -1320,7 +1348,7 @@ Command:
 
 1.
 
-```
+```Dockerfile
 # Example 1: Using ENTRYPOINT
 FROM ubuntu
 ENTRYPOINT ["sleep"]
@@ -1337,7 +1365,7 @@ ENTRYPOINT ["sleep"]
 
 2.
 
-```
+```Dockerfile
 # Example 2: Using CMD
 FROM ubuntu
 CMD ["sleep", "5"]
@@ -1355,7 +1383,7 @@ CMD ["sleep", "5"]
 
 3.
 
-```
+```Dockerfile
 # Example 3: Using ENTRYPOINT and CMD together
 FROM ubuntu
 ENTRYPOINT ["sleep"]
@@ -1412,7 +1440,7 @@ spec:
     args: ["5000"]
 ```
 
->**Note**:
+> **Note**:
 > Both the `command` and `args` need to string not number
 
 # [Config Map](ConfigMaps)
@@ -1443,9 +1471,9 @@ data:
 immutable: true
 ```
 
->**Note**: Once a ConfigMap is marked as `immutable`, it is not possible to revert this change nor to mutate the contents of the data or the binaryData field. You can only delete and recreate the ConfigMap. Because existing Pods maintain a mount point to the deleted ConfigMap, it is recommended to recreate these pods.
+> **Note**: Once a ConfigMap is marked as `immutable`, it is not possible to revert this change nor to mutate the contents of the data or the binaryData field. You can only delete and recreate the ConfigMap. Because existing Pods maintain a mount point to the deleted ConfigMap, it is recommended to recreate these pods.
 
->**Note**: A ConfigMap is not designed to hold large chunks of data. The data stored in a ConfigMap cannot exceed `1 MiB`. If you need to store settings that are larger than this limit, you may want to consider **mounting a volume** or use a separate database or file service.
+> **Note**: A ConfigMap is not designed to hold large chunks of data. The data stored in a ConfigMap cannot exceed `1 MiB`. If you need to store settings that are larger than this limit, you may want to consider **mounting a volume** or use a separate database or file service.
 
 ### Creating a ConfigMap
 
@@ -1470,11 +1498,11 @@ data:
   # file-like keys
   game.properties: |
     enemy.types=aliens,monsters
-    player.maximum-lives=5    
+    player.maximum-lives=5
   user-interface.properties: |
     color.good=purple
     color.bad=yellow
-    allow.textmode=true    
+    allow.textmode=true
 ```
 
 command :
@@ -1526,9 +1554,9 @@ spec:
   - name: nginx
     image: nginx
     env:                      # Define the environment variable
-      - name: APP_COLOUR      # Notice that the case is different here 
+      - name: APP_COLOUR      # Notice that the case is different here
                               # from the key name in the ConfigMap.
-        valueFrom:            
+        valueFrom:
           configMapKeyRef:
             name: APP         # The ConfigMap this value comes from.
             key: frontend     # The key to fetch.
@@ -1563,7 +1591,7 @@ spec:
 Use `envFrom` to define all of the ConfigMap's data as container environment variables. The key from the ConfigMap becomes the environment variable name in the Pod.
 
 3. **Mounting the configMap through the `Volumes`.
-To consume a ConfigMap in a volume in a Pod:**
+   To consume a ConfigMap in a volume in a Pod:**
 
 - Create a ConfigMap or use an existing one. Multiple Pods can reference the same ConfigMap.
 - Modify your Pod definition to add a volume under `.spec.volumes[]`. Name the volume anything, and have a `.spec.volumes[].configMap.name` field set to reference your ConfigMap object.
@@ -1575,7 +1603,7 @@ To consume a ConfigMap in a volume in a Pod:**
 - This enables containers to access and store data persistently, share data between containers in the same Pod, or access configuration files and secrets securely.
 - Mounted ConfigMaps are updated automatically
 
-```
+```yml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -1646,7 +1674,7 @@ echo -n 'c29tZS12YWx1ZQ==' | base64 --decode
 
 1. `envFrom` injecting secret as a Environment variables
 
-```
+```yml
 ---
 apiVersion: v1
 kind: Pod
@@ -1754,8 +1782,8 @@ spec:
 - If a Pod's init container `fails`, the `kubelet` repeatedly restarts that init container until it succeeds.
 - However, if the Pod has a `restartPolicy` of `Never`, and an init container fails during startup of that Pod, Kubernetes treats the overall Pod as failed.
 - But at times you may want to run a process that runs to completion in a container.
-  
-**For example** a process that pulls a code or binary from a repository that will be used by the main web application. That is a task that will be run only  one time when the pod is first created. Or a process that waits  for an external service or database to be up before the actual application starts. That's where initContainers comes in.
+
+**For example** a process that pulls a code or binary from a repository that will be used by the main web application. That is a task that will be run only one time when the pod is first created. Or a process that waits for an external service or database to be up before the actual application starts. That's where initContainers comes in.
 
 Example 1:
 
@@ -1799,7 +1827,7 @@ Example 1:
 - init containers do not support lifecycle, livenessProbe, readinessProbe, or startupProbe
 - Init containers share the same resources (CPU, memory, network) with the main application containers
 
- **Sidecar**
+  **Sidecar**
 
 - They run alongside the main application container, providing additional capabilities like logging, monitoring, or data synchronization.
 - Unlike init containers, sidecar containers remain running for the life of the pod.
@@ -2025,15 +2053,16 @@ you can restricthe the communication between pods with `network policies`
 - all user access is managed by the `kube-apiserver`
 - ![alt text](image-11.png)
 - Auth Mechanisam for `kube-apiserver`
+
   - Username and passwords in a csv file
-    ```
-    password123,username1,user_id1
+    `    password123,username1,user_id1
     password456,username2,user_id2
     password789,username3,user_id3
-    ```
+   `
 
-    - `--basic-auth-file=user-details.csv`
-![alt text](image-12.png)
+        - `--basic-auth-file=user-details.csv`
+
+    ![alt text](image-12.png)
 
 - Username and Token in a csv file
 - Certificates
@@ -2059,57 +2088,57 @@ you can restricthe the communication between pods with `network policies`
    - **Client Hello:** The client sends a "Client Hello" message to the server, which includes the TLS version, cipher suites, and a randomly generated number.
    - **Server Hello:** The server responds with a "Server Hello" message, selecting the TLS version and cipher suite from the client's list, and provides a randomly generated number.
 2. **Server Authentication and Pre-Master Secret:**
-     - **Server Certificate:** The server sends its digital certificate to the client, which includes the server’s public key and is issued by a trusted `Certificate Authority (CA).`
-     - **Pre-Master Secret:** The client generates a pre-master secret *encryption session key*, *encrypts it with the server’s public key*, and sends it to the server.
+   - **Server Certificate:** The server sends its digital certificate to the client, which includes the server’s public key and is issued by a trusted `Certificate Authority (CA).`
+   - **Pre-Master Secret:** The client generates a pre-master secret _encryption session key_, _encrypts it with the server’s public key_, and sends it to the server.
 3. **Session Keys Creation:**
    - Both the client and the server use the`pre-master secret` along with the previously exchanged random numbers to generate the same session keys, which are symmetric keys used for the session’s encryption and decryption.
 4. **Secure Communication:**
    - **Change Cipher Spec:** Both client and server send a message to indicate that future messages will be encrypted using the session keys.
    - **Encrypted Messages:** The client and server communicate securely using symmetric encryption.
-![alt text](image-13.png)
+     ![alt text](image-13.png)
 
 > The combination of TLS and Asystemtec provides a `robust` security framework, where TLS secures the communication channel and Asystemtec verifies user identities and manages sessions.
 
 - **Symmentric Encryption**
-   1. it is a secure way of encryption
-   2. In symmetric key encryption, the same key is used for both encryption and decryption of data.
-   3. encrypted data and key travells through same network
-   4. hacker can intersept that key while sending and decrypt it.
-   5. **faster** way of authentication
+
+  1.  it is a secure way of encryption
+  2.  In symmetric key encryption, the same key is used for both encryption and decryption of data.
+  3.  encrypted data and key travells through same network
+  4.  hacker can intersept that key while sending and decrypt it.
+  5.  **faster** way of authentication
 
 - **Asymmtric Encryption**
-   1. Asymmetric encryption uses two mathematically connected keys: a **public** key and a **private** key.
+  1.  Asymmetric encryption uses two mathematically connected keys: a **public** key and a **private** key.
       1. `ssh-keygen` to generate the private and public keys
-   2. The **public** key is used for encryption of user data, while the **private** key is used for decryption of user data of the same server itself.
-   3. Server send the public key to client
-   4. client uses the public key to encrypt the private key of client
-   5. client sends the encrypted private key to server
-   6. server decrypts the encrypted key with its private key
-   7. client encrypts the data with the clients public key
-   8. client sends the encrypted data to server
-   9. server decrypts the data with the clients private key which server recived earlier.
-   10. Reads the data.
-   11. Hacker can place its own proxy server in place of actual server
-   12. then client communicates with that hacker server and hacks the data.s
-  
+  2.  The **public** key is used for encryption of user data, while the **private** key is used for decryption of user data of the same server itself.
+  3.  Server send the public key to client
+  4.  client uses the public key to encrypt the private key of client
+  5.  client sends the encrypted private key to server
+  6.  server decrypts the encrypted key with its private key
+  7.  client encrypts the data with the clients public key
+  8.  client sends the encrypted data to server
+  9.  server decrypts the data with the clients private key which server recived earlier.
+  10. Reads the data.
+  11. Hacker can place its own proxy server in place of actual server
+  12. then client communicates with that hacker server and hacks the data.s
 - **TLS Handshake**
-   1. `SSL/TLS` certs are created by CA authorities.
-   2. Application server sends its public key to CA authority.
-   3. CA authority issues a TLS certificate
-   4. CA authority enclose the application server key init and give **signature** with CA authority server public key.
+  1.  `SSL/TLS` certs are created by CA authorities.
+  2.  Application server sends its public key to CA authority.
+  3.  CA authority issues a TLS certificate
+  4.  CA authority enclose the application server key init and give **signature** with CA authority server public key.
       1. `SIGNATURE = Application server public key + CA authority server public key`
       2. signature is then added in the certificate.
-   5. Now that certificate from CA will be transfered to the application server with application server public key init.
-   6. now the application server sends that signed certificate to the client server
-   7. client server then recives the certificate from application server with application server public key init
-   8. client server then goes to the CA authority of the application server and brings its public key.
-   9. client then verify the SIGNATURE with public key if application server and Public key of CA authority.
-   10. if the SIGNATURE matches then Client establish the connection with that application server, if not then connection is not been established.
-   11. client uses that public key to encrypt the private key of client
-   12. client send that encrypted private key of the client server to application server which was been encrypted by the public key of the application server.
-   13. application server then drypt that client private key with application server private key, and stores that Client private key for that session.
-   14. client encrypts the data with its public key and send to the application server
-   15. application server recives that ecrypted data and drypt it with clients private key and reads the data.
+  5.  Now that certificate from CA will be transfered to the application server with application server public key init.
+  6.  now the application server sends that signed certificate to the client server
+  7.  client server then recives the certificate from application server with application server public key init
+  8.  client server then goes to the CA authority of the application server and brings its public key.
+  9.  client then verify the SIGNATURE with public key if application server and Public key of CA authority.
+  10. if the SIGNATURE matches then Client establish the connection with that application server, if not then connection is not been established.
+  11. client uses that public key to encrypt the private key of client
+  12. client send that encrypted private key of the client server to application server which was been encrypted by the public key of the application server.
+  13. application server then drypt that client private key with application server private key, and stores that Client private key for that session.
+  14. client encrypts the data with its public key and send to the application server
+  15. application server recives that ecrypted data and drypt it with clients private key and reads the data.
 
 ## TLS certificate in Kubernetes Cluster
 
@@ -2123,7 +2152,7 @@ you can restricthe the communication between pods with `network policies`
 - Admin also requires the `admin.crt` and `admin.key` to access the `kube-apiserver`.
 - similarly the `kube-scheduler` also talks with the `kube-apiserver` to schedule the pods on the worker nodes. So it also requires the TLS certificate and the key `scheduler.crt` and `scheduler.key`
 - Even the Kube-apiserver requires the `apiserver.crt` and `apiserver.key` to talk to `etcd-server`
-![alt text](image-15.png)
+  ![alt text](image-15.png)
 
 ### How to generate the TLS certificate for k8s cluster
 
@@ -2132,11 +2161,8 @@ you can restricthe the communication between pods with `network policies`
      - command = `openssl genrsa -out ca.key 2048`
    - **Generate the Certificate Signing Request (CSR)**
      - command = `openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr`
-   - **Sign Certificates**
-     - command = `openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt`
-     - `ca.csr` is the cert with no sign
-     - `ca.key` is used to sign the cert
-![Cerificate](image-16.png)
+   - **Sign Certificates** - command = `openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt` - `ca.csr` is the cert with no sign - `ca.key` is used to sign the cert
+     ![Cerificate](image-16.png)
 2. **Client Certificates**
    - **Generate the Private Key**
      - command = `openssl genrsa -out admin.key 2048`
@@ -2155,30 +2181,34 @@ cat /etc/kubernetes/manifests/apiserver.yaml
 ```
 
 ## [KubeConfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/)
+
 - To configure the user with the kubeAPI server you need to use the KubeAPI server.
--  Kubeconfig is a configuration file that contains the information about the **cluster**, **user** and the **authentication information (contexts)**.
--  It is located inside the `~/.kube/config`
+- Kubeconfig is a configuration file that contains the information about the **cluster**, **user** and the **authentication information (contexts)**.
+- It is located inside the `~/.kube/config`
 
 **Clusters**
+
 - Clusters have information about the different environments.
   - Development
   - UAT
   - Production
 
-
 **Users**
--  Users have information about the different users.
--  Which user has access to the which cluster
-   -  Admin user
-   -  Dev user
-   -  Prod user
--  These user may have different privileges to different cluster.
-  
+
+- Users have information about the different users.
+- Which user has access to the which cluster
+  - Admin user
+  - Dev user
+  - Prod user
+- These user may have different privileges to different cluster.
+
 **Creating User in Kubernetes**
--  Kubernetes does not have a concept of users, instead it relies on certificates and would only trust certificates signed by its own CA.
+
+- Kubernetes does not have a concept of users, instead it relies on certificates and would only trust certificates signed by its own CA.
 - To get the CA certificates for our cluster, easiest way is to access the master node.
 - Because we run on kind, our master node is a docker container.
 - The CA certificates exists in the `/etc/kubernetes/pki` folder by default.
+
 ```
 docker exec -it rbac-control-plane bash
 
@@ -2202,81 +2232,99 @@ drwxr-xr-x 2 root root 4096 Sep 10 01:38 etcd
 
 exit the container
 ```
+
 ```
 cd kubernetes/rbac
 docker cp rbac-control-plane:/etc/kubernetes/pki/ca.crt ca.crt
 docker cp rbac-control-plane:/etc/kubernetes/pki/ca.key ca.key
 ```
+
 - As mentioned before, Kubernetes has no concept of users, it trusts certificates that is signed by its CA.
-This allows a lot of flexibility as Kubernetes lets you bring your own auth mechanisms, such as [OpenID](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens) Connect or OAuth.
+  This allows a lot of flexibility as Kubernetes lets you bring your own auth mechanisms, such as [OpenID](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens) Connect or OAuth.
 - First thing we need to do is create a certificate signed by our Kubernetes CA.
 - Easy way to create a cert is use openssl and the easiest way to get openssl is to simply run a container:
+
   ```
   docker run -it -v ${PWD}:/work -w /work -v ${HOME}:/root/ --net host alpine sh
 
   apk add openssl
   ```
+
 - Let's create a certificate for `Bob Smith`:
   ```
   #start with a private key
   openssl genrsa -out bob.key 2048
   ```
-Now we have a key, we need a certificate signing request (CSR).
-We also need to specify the groups that Bob belongs to.
-Let's pretend Bob is part of the Shopping team and will be developing applications for the Shopping
+  Now we have a key, we need a certificate signing request (CSR).
+  We also need to specify the groups that Bob belongs to.
+  Let's pretend Bob is part of the Shopping team and will be developing applications for the Shopping
+
 ```
 openssl req -new -key bob.key -out bob.csr -subj "/CN=Bob Smith/O=Shopping"
 ```
+
 Use the CA to generate our certificate by signing our CSR.
 We may set an expiry on our certificate as well
+
 ```
 openssl x509 -req -in bob.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out bob.crt -days 1
 ```
+
 **Building a kube config**
 Let's install kubectl in our container to make things easier:
+
 ```
 apk add curl nano
 curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
 chmod +x ./kubectl
 mv ./kubectl /usr/local/bin/kubectl
 ```
+
 We'll be trying to avoid messing with our current kubernetes config.
 So lets tell kubectl to look at a new config that does not yet exists
+
 ```
 export KUBECONFIG=~/.kube/new-config
 ```
+
 Create a cluster entry which points to the cluster and contains the details of the CA certificate:
+
 ```
 kubectl config set-cluster dev-cluster --server=https://127.0.0.1:52807 \
 --certificate-authority=ca.crt \
 --embed-certs=true
 
-#see changes 
+#see changes
 nano ~/.kube/new-config
 ```
+
 ```
 kubectl config set-credentials bob --client-certificate=bob.crt --client-key=bob.key --embed-certs=true\
 kubectl config set-context dev --cluster=dev-cluster --namespace=shopping --user=bob
 kubectl config use-context dev
 ```
+
 **Contexts**
+
 - Contexts are use to link the user and cluster together.
--  It is used to switch between different cluster and user.
--  For example, you can have a context for the development cluster and another for the production cluster
--  use need to set the current context in the config file which tells the kubectl to which user to user for which cluster. 
--  you can also set the working namespace for a context
+- It is used to switch between different cluster and user.
+- For example, you can have a context for the development cluster and another for the production cluster
+- use need to set the current context in the config file which tells the kubectl to which user to user for which cluster.
+- you can also set the working namespace for a context
 
 **To view the Kubeconfig**
-- To view the config file   
-   - `kubectl config view`
+
+- To view the config file
+  - `kubectl config view`
 - To use a custom config file
   - `kubectl config view --kubeconfig=my-custom-config`
-- To change the current context 
+- To change the current context
   - `kubectl config use-context <user@cluster>`
 - To see only the configuration information associated with the current context, use the `--minify` flag.
   - `kubectl config --kubeconfig=config-demo view --minify`
 
 **Example config file**
+
 ```yml
 apiVersion: v1
 kind: Config
@@ -2287,7 +2335,7 @@ clusters:
   cluster:
       certificate-authority: ca.crt
       # to add ca.crt file content in base64 encoded format directly in config file
-      # certificate-authority-data: 
+      # certificate-authority-data:
       server: 0.0.0.0
 - name: test
   cluster:
@@ -2306,27 +2354,30 @@ users:
 
 contexts:
 - name: developer@development
-  context: 
+  context:
       cluster: development
-      user: developer 
+      user: developer
       namespace: frontend
 - name: experimenter@test
-  context: 
+  context:
       cluster: test
       user: experimenter
       namespace: storage
 ```
 
 **Add context details to your configuration file:**
+
 ```
 kubectl config --kubeconfig=config-demo set-context dev-frontend --cluster=development --namespace=frontend --user=developer
 kubectl config --kubeconfig=config-demo set-context dev-storage --cluster=development --namespace=storage --user=developer
 kubectl config --kubeconfig=config-demo set-context exp-test --cluster=test --namespace=default --user=experimenter
 ```
->**Note**:
-A file that is used to configure access to a cluster is sometimes called a *kubeconfig file*. This is a generic way of referring to configuration files. It does not mean that there is a file named `kubeconfig`.
+
+> **Note**:
+> A file that is used to configure access to a cluster is sometimes called a _kubeconfig file_. This is a generic way of referring to configuration files. It does not mean that there is a file named `kubeconfig`.
 
 **Set the KUBECONFIG environment variable**
+
 - Linux
   - `export KUBECONFIG_SAVED="$KUBECONFIG"`
 - Append $HOME/.kube/config to your KUBECONFIG environment variable
@@ -2336,8 +2387,8 @@ A file that is used to configure access to a cluster is sometimes called a *kube
   - `$Env:KUBECONFIG="$Env:KUBECONFIG;$HOME\.kube\config"`
 
 ## Kube API groups
-- In Kubernetes, API groups are a way to organize different kinds of API resources, helping to make the API more modular and scalable. This approach allows the introduction of new APIs and versions without disturbing the core API, improving Kubernetes' extensibility. API groups essentially group related resources and provide versioning for these resources
 
+- In Kubernetes, API groups are a way to organize different kinds of API resources, helping to make the API more modular and scalable. This approach allows the introduction of new APIs and versions without disturbing the core API, improving Kubernetes' extensibility. API groups essentially group related resources and provide versioning for these resources
 
 **Structure of API Groups:**
 
@@ -2352,32 +2403,43 @@ for Example:
 - `deployments` is the resource being accessed.
 
 ### Types of API groups:
+
 1. **Core Group (Legacy or No Group)** **(api)**
+
 - Also known as the core or legacy API, this group doesn't have a name in the URL.
 - The resources here are some of the core Kubernetes components, like **Pods**, **Services**, **Namespaces**, and **Nodes**.
 - `/api/v1/pods`
+
 ---
+
 2. **Named Groups** **(apis)**
+
 - These are groups with names and are organized based on the functionality they serve.
 - Each named group can have different versions (e.g., `v1`, `v2beta`, etc.), allowing backward compatibility and smooth transitions to newer versions.
 - Examples:
 - `apps`: This API group contains resources like **Deployments**, **DaemonSets**, and **StatefulSets**.
   - `/apis/apps/v1/deployments`
-  
 - `batch`: Handles jobs and cron jobs.
+
   - `/apis/batch/v1/jobs`
 
 - `networking.k8s.io`: Deals with network-related resources like **Ingress** and **NetworkPolicies**.
+
   - `/apis/networking.k8s.io/v1/ingresses`
 
 - `rbac.authorization.k8s.io`: Manages Role-Based Access Control (RBAC) resources like **Roles** and **RoleBindings**.
   - `/apis/rbac.authorization.k8s.io/v1/roles`
+
 ---
+
 3. **Custom Resource Definitions (CRDs)**
+
 - Kubernetes allows users to define their own APIs by creating `Custom Resource Definitions` (CRDs), which belong to custom groups and provide an extension to Kubernetes' built-in functionality.
 - CRDs can be used to define resources in an organization-specific group.
 - `/apis/custom.group/v1/myresource`
+
 ---
+
 **Versioning in API Groups**
 
 Kubernetes API groups use versioning (e.g., v1, v2beta1) to ensure backward compatibility.
@@ -2386,6 +2448,7 @@ Beta versions (v1beta1) are more stable but can still undergo changes.
 Stable versions (v1) are generally considered safe for production use.
 
 ---
+
 **Summary of API Group Types:**
 
 `Core Group`: No named group.
@@ -2397,18 +2460,21 @@ Stable versions (v1) are generally considered safe for production use.
 ---
 
 ## [Authorizations](https://kubernetes.io/docs/reference/access-authn-authz/authorization/):
+
 - Kubernetes authorization takes place following authentication. Usually, a client making a request must be authenticated (logged in) before its request can be allowed; however, Kubernetes also allows anonymous requests in some circumstances.
 - All parts of an API request must be allowed by some `authorization mechanism` in order to proceed. In other words: access is denied by default.
 
 ## [Authorization modes](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules)
+
 1. RBAC
 2. ABAC
 3. Webhook
 4. Node
 
-![alt text](image-18.png)
----
+## ![alt text](image-18.png)
+
 ### RBAC (Role based access control)
+
 - RBAC is the default authorization mode in Kubernetes.
 - It is based on the concept of roles and bindings.
 - Roles are collections of permissions.
@@ -2417,18 +2483,19 @@ Stable versions (v1) are generally considered safe for production use.
 - `Role` and `RoleBinding` are namespace specific.
 - A Role always sets permissions within a particular namespace; when you create a Role, you have to specify the namespace it belongs in.
 - for cluster level you need to use the `ClusterRole`and `ClusterRoleBinding` which covers all namespaces.
-- to check which Authorization modes are enabled on the cluster you can use the 
-  - `kubectl describe pod kube-apiserver-controlplane -n kube-system | grep "--authorization-mode"` 
+- to check which Authorization modes are enabled on the cluster you can use the
+  - `kubectl describe pod kube-apiserver-controlplane -n kube-system | grep "--authorization-mode"`
 
 ---
-
 
 1. Define a `generic container` for permissions : a `Role`.
 2. Assign the `permissions` to the `Role`.
 3. Bind the `Role` to the `User` and `Group`.
 
 ---
+
 - ![alt text](image-17.png)
+
 ---
 
 ### Role and RoleBinding
@@ -2472,8 +2539,9 @@ roleRef:
 - RoleBinding also operates on the `namespace` level.
 
 **commands**
+
 - `kubectl get roles` to list all roles in the current namespace
-- `kubectl get rolebindings` 
+- `kubectl get rolebindings`
 - `kubectl describe role <role_name>`
 
 **Check acess**
@@ -2485,12 +2553,14 @@ To see if the use has the access to a perticuler resource in the cluster
 - kubectl auth `can-i` create deployment --as `dev-user` ----> no
 - kubectl auth `can-i` create pods --as `dev-user` -----> yes
 - kubectl auth `can-i` create pods --as `dev-user` --namespace test ----> no
+
 ---
 
 ### ClusterRole and ClusterRoleBindings
+
 - `ClusterRole` and `ClusterRoleBindings` are used to manage access at the cluster level. They are similar to `Role` and `RoleBindings`.
 - with the help of CLusterRole the `user` can access the `resources` of other namespaces too.
-- *Use-cases*
+- _Use-cases_
   - **Node**
     - delete Node
     - Create Node
@@ -2501,6 +2571,7 @@ To see if the use has the access to a perticuler resource in the cluster
     - update PV
 
 **Namespaced Resources**
+
 - Role
 - RoleBindings
 - Deployments
@@ -2513,6 +2584,7 @@ To see if the use has the access to a perticuler resource in the cluster
 - Jobs
 
 **Cluster Scoped Resources**
+
 - ClusterRole
 - ClusterRoleBindings
 - PV
@@ -2553,41 +2625,40 @@ roleRef:
 
 ---
 
-
-###  [ServiceAccounts](https://kubernetes.io/docs/concepts/security/service-accounts/) 
+### [ServiceAccounts](https://kubernetes.io/docs/concepts/security/service-accounts/)
 
 - ServiceAccount is used when an application want to connect or retrieve data from the cluster
-	- Authenticating to the API server or implementing identity-based security policies.
+  - Authenticating to the API server or implementing identity-based security policies.
 - **There are two types of accounts in k8s:**
-	- **User Account**
-		- used by users 
-		- admin access the cluster to administer the cluster
-		- developer access the cluster to deploy the application 
-		- By default, user accounts don't exist in the Kubernetes API server; instead, the API server treats user identities as `opaque` data.
-	- **Service Accounts** 
-		- Used by machines
-- When a service account is created it two objects. 
-	- the Service Account object
-		- `kubectl describe serviceaccount <name>`
-	- Secret object to store the token init.
-		- `kubectl describe secret <token_name>`
+  - **User Account**
+    - used by users
+    - admin access the cluster to administer the cluster
+    - developer access the cluster to deploy the application
+    - By default, user accounts don't exist in the Kubernetes API server; instead, the API server treats user identities as `opaque` data.
+  - **Service Accounts**
+    - Used by machines
+- When a service account is created it two objects.
+  - the Service Account object
+    - `kubectl describe serviceaccount <name>`
+  - Secret object to store the token init.
+    - `kubectl describe secret <token_name>`
 - Then the Secret object is linked to the service account
 - **Process**
-	1. Create a SA `kubectl create sa <SA_name>`
-	2. Export the token `kubectl create token <SA_name>`
-		1. Token path: `/var/run/secrets/kubernetes.io/serviceaccount`
-	3. Assign right permissions with (**RBAC**) 
-		1. Create Role
-		2. Create RoleBindings
-	4. Attach the `SA` to `POD` using `serviceAccountName` field
-	5. for checking permissions use below command 
-		1. `kubectl auth can-i get pod --as=system:serviceaccount:default:<SA_name>`
+  1.  Create a SA `kubectl create sa <SA_name>`
+  2.  Export the token `kubectl create token <SA_name>`
+      1. Token path: `/var/run/secrets/kubernetes.io/serviceaccount`
+  3.  Assign right permissions with (**RBAC**)
+      1. Create Role
+      2. Create RoleBindings
+  4.  Attach the `SA` to `POD` using `serviceAccountName` field
+  5.  for checking permissions use below command
+      1. `kubectl auth can-i get pod --as=system:serviceaccount:default:<SA_name>`
 - Each `NameSpace` has its own default `service account`
-- When you create a cluster, Kubernetes automatically creates a ServiceAccount object named `default` for every namespace in your cluster. it has `no permission` by default 
+- When you create a cluster, Kubernetes automatically creates a ServiceAccount object named `default` for every namespace in your cluster. it has `no permission` by default
 - whenever a new pod is created the default `service Account` and its token automatically gets mounted as a volume inside the pod
-- if you don't mention the `service Account` name a default gets automatically mounted as a  volume mount inside the pod
+- if you don't mention the `service Account` name a default gets automatically mounted as a volume mount inside the pod
 - To prevent Kubernetes from automatically injecting credentials for a specified ServiceAccount or the `default` ServiceAccount, set the `automountServiceAccountToken` field in your Pod specification to `false`.
->**Note**: After Kubernetes version `1.24` the token has expiration time 
+  > **Note**: After Kubernetes version `1.24` the token has expiration time
 
 ```yml
 apiVersion: v1
@@ -2619,10 +2690,10 @@ metadata:
   namespace: default
 subjects:
 - kind: ServiceAccount
-  name: my-serviceaccount 
+  name: my-serviceaccount
   namespace: default
 roleRef:
-  kind: Role 
+  kind: Role
   name: pod-reader-SA
   apiGroup: rbac.authorization.k8s.io
 ```
@@ -2642,6 +2713,7 @@ spec:
 ```
 
 To remove the `default` SA from pod
+
 ```yml
 ---
 apiVersion: v1
@@ -2655,19 +2727,24 @@ spec:
     image: nginx
     command: ["sleep", "5000"]
 ```
+
 ---
+
 ## [Image Security](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
+
 - to connect to private container registry other than docker
 - image: `registry_url/user_Account/Image_repo`
   - ![alt text](image-20.png)
 - to authenticate to the private docker register you need to create a secret
+
 ```
-kubectl create secret docker-registry docker-creds \ 
---docker-server= private-registry.io \ 
---docker-username= registry-user \ 
---docker-password= registry-password \ 
+kubectl create secret docker-registry docker-creds \
+--docker-server= private-registry.io \
+--docker-username= registry-user \
+--docker-password= registry-password \
 --docker-email= registry-user@org.com
 ```
+
 ```yml
 apiVersion: v1
 kind: Secret
@@ -2681,7 +2758,8 @@ data:
   docker-email: xyz@mail.com
 ```
 
-- Attach the `secret` to the `pod` with `imagePullSecrets` field in pod definition 
+- Attach the `secret` to the `pod` with `imagePullSecrets` field in pod definition
+
 ```yml
 ---
 apiVersion: v1
@@ -2696,44 +2774,45 @@ spec:
   imagePullSecrets:
   - docker-registry
 ```
+
 ---
 
 ## Docker Security
+
 - container and host share the same kernel
 - All the process run by the container are ran on the host itself but in there own namespace
 - Process of containers are isolated from each other
-- by default the docker run process as  a root user inside the container
-	- you can choose the `user` while running the container ex- `user 1000`
-- use can build a `Dockerfile` with `user 1000` then any process docker run inside the docker container will be run as  a `user 1000`
-
+- by default the docker run process as a root user inside the container
+  - you can choose the `user` while running the container ex- `user 1000`
+- use can build a `Dockerfile` with `user 1000` then any process docker run inside the docker container will be run as a `user 1000`
 
 ```Dockerfile
 FROM ubuntu
 USER 1000
 ```
 
-
 ```
-docker run my-ubuntu-image sleep 3600 # this will run the sleep command as a USER 1000 not the ROOT inside the container 
+docker run my-ubuntu-image sleep 3600 # this will run the sleep command as a USER 1000 not the ROOT inside the container
 ```
 
 - `ROOT` user within the container is not as good as the `ROOT` user in the host
-	- Docker host doesn't have the privilege to reboot the host
-	- **`docker run --cap-add MAC_ADMIN ubuntu`** : This option adds a specific capability to the container.
-		- **`MAC_ADMIN`** stands for Mandatory Access Control (MAC) administration. This capability allows the container to modify or administer MAC policies. Such policies control access to system resources, enforcing security boundaries.
-		- *Note*: Granting the `MAC_ADMIN` capability should be done carefully, as it gives the container additional privileges, potentially increasing security risks.
-	- **`docker run --cap-drop KILL ubuntu`** : This option removes a specific capability from the container.
-		- **`KILL` capability**: Normally, this capability allows processes within the container to send signals to other processes (e.g., to terminate them). By dropping it, you prevent processes within the container from sending signals to terminate other processes (unless they own the processes).
-		- **Security Context**: Dropping capabilities like `KILL` is part of a security best practice called the "principle of least privilege." By reducing the container's privileges, you minimize the risk of it being used to compromise the system.
-	- **`docker run --priviledge ubuntu`** : This flag grants the container almost all the host’s kernel capabilities. Specifically
-		- The container has access to all devices on the host, allowing it to perform operations that are usually restricted.
-		- The container can change certain settings and modify system configurations, which are typically protected (e.g., mount filesystems, change kernel parameters).
-		- It bypasses many of Docker's usual isolation mechanisms, essentially giving the container root access to the host machine’s kernel and hardware.
-	>**Note**: **Security Risk**: Running a container with the `--privileged` flag is risky because it grants nearly unrestricted access to the `host` system. This should only be used in trusted environments or when absolutely necessary, such as in cases requiring direct hardware access (e.g., for containers managing low-level system operations or running software that needs kernel-level permissions).
+  - Docker host doesn't have the privilege to reboot the host
+  - **`docker run --cap-add MAC_ADMIN ubuntu`** : This option adds a specific capability to the container.
+    - **`MAC_ADMIN`** stands for Mandatory Access Control (MAC) administration. This capability allows the container to modify or administer MAC policies. Such policies control access to system resources, enforcing security boundaries.
+    - _Note_: Granting the `MAC_ADMIN` capability should be done carefully, as it gives the container additional privileges, potentially increasing security risks.
+  - **`docker run --cap-drop KILL ubuntu`** : This option removes a specific capability from the container.
+    - **`KILL` capability**: Normally, this capability allows processes within the container to send signals to other processes (e.g., to terminate them). By dropping it, you prevent processes within the container from sending signals to terminate other processes (unless they own the processes).
+    - **Security Context**: Dropping capabilities like `KILL` is part of a security best practice called the "principle of least privilege." By reducing the container's privileges, you minimize the risk of it being used to compromise the system.
+  - **`docker run --priviledge ubuntu`** : This flag grants the container almost all the host’s kernel capabilities. Specifically - The container has access to all devices on the host, allowing it to perform operations that are usually restricted. - The container can change certain settings and modify system configurations, which are typically protected (e.g., mount filesystems, change kernel parameters). - It bypasses many of Docker's usual isolation mechanisms, essentially giving the container root access to the host machine’s kernel and hardware.
+    > **Note**: **Security Risk**: Running a container with the `--privileged` flag is risky because it grants nearly unrestricted access to the `host` system. This should only be used in trusted environments or when absolutely necessary, such as in cases requiring direct hardware access (e.g., for containers managing low-level system operations or running software that needs kernel-level permissions).
+
 ---
+
 ## Docker security Context in Kubernetes:
+
 - To Implement the docker like capabilities via k8s
 - to apply at `pod` level add `securityContext` field
+
 ```yml
 ---
 apiVersion: v1
@@ -2748,7 +2827,9 @@ spec:
     image: ubuntu
     command: ["sleep", "3600"]
 ```
+
 To apply capabilities at `container` level inside the pod
+
 ```yml
 ---
 apiVersion: v1
@@ -2766,7 +2847,7 @@ spec:
         add: ["MAC_ADMIN"]
 ```
 
->**Note**: Capabilities cannot be added at the `POD` level it can be only added at the `container` level
+> **Note**: Capabilities cannot be added at the `POD` level it can be only added at the `container` level
 
 ```yml
 apiVersion: v1
@@ -2787,8 +2868,11 @@ spec:
      name: sidecar
      command: ["sleep", "5000"] # This command will run as USER 1001
 ```
+
 ---
+
 ## [Network Policy](https://earthly.dev/blog/kubernetes-network-policies/)
+
 - you can only use the `NetworkPolicy` object in k8s when you have deployed a Networking solution inside the cluster.
   - **Antrea**
     - calico
@@ -2800,18 +2884,19 @@ spec:
 - Your cluster must use a network plugin that supports `NetworkPolicy` enforcement.
 - by default any pod in any node within cluster can communicates with any pod.
 - With Network policies attached to a pod you can control the ingress(incomming) and egress(Outgoing) traffic from a pod.
-**User Case**
+  **User Case**
 - Suppose we have a 3-tier application
-	- front-end
-	- back-end
-	- Database
+  - front-end
+  - back-end
+  - Database
 - we want only back-end pod can communicates with the database pod, not the front-end pod
 - we can achive this with the help of `Network policy` object in K8s.
 
 [Network](https://earthly.dev/blog/assets/images/kubernetes-network-policies/T9DWs2n.png)
-![alt text](image-21.png) 
+![alt text](image-21.png)
 
 **FEATURES OF NETWORK POLICIES**
+
 - **Namespaced resources:** Network policies are defined as Kubernetes objects and are applied to a specific namespace. This allows you to control traffic flow between pods in different namespaces.
 - **Additive:** In Kubernetes, network policies are additive. This means that if you create multiple policies that select the same pod, all the rules specified in each policy will be combined and applied to the pod.
 - **Label-based traffic selection:** Kubernetes network policies allow you to select traffic based on pod labels. This provides a flexible way to control traffic flow within your cluster.
@@ -2820,8 +2905,7 @@ spec:
 
 ![alt text](image-22.png)
 
-
-Create a pod `database` with `labels` 
+Create a pod `database` with `labels`
 
 ```yml
 apiVersion: v1
@@ -2859,6 +2943,7 @@ spec:
 ```
 
 Now to enable the traffic from another `namespace`, below will allow traffic from `back-end` pod from `prod` namespace to `database` pod
+
 ```yml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -2884,6 +2969,7 @@ spec:
 ```
 
 To control the outgoing traffic `engress` from the `database` pod to the `back-end` pod
+
 ```yml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -2907,7 +2993,7 @@ spec:
       ports:
         - protocol: TCP
           port: 3306
-  
+
   engress:
     - to:
         - podSelector:
@@ -2922,6 +3008,7 @@ spec:
 ```
 
 to add external server to connect to the database pod, then you need to allow that server IP
+
 ```yml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -2944,16 +3031,20 @@ spec:
         - protocol: TCP
           port: 6875
 ```
+
 ---
+
 ### **Kubectx**:
 
 With this tool, you don't have to make use of lengthy “kubectl config” commands to switch between contexts. This tool is particularly useful to switch context between clusters in a multi-cluster environment.
 
 **Installation**:
+
 ```
 sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
 sudo ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx
 ```
+
 **Syntax**:
 
 To list all contexts:
@@ -2962,50 +3053,59 @@ To list all contexts:
 kubectx
 ```
 
-
-
 To switch to a new context:
+
 ```
 kubectx <context_name>
 ```
 
 To switch back to previous context:
+
 ```
 kubectx -
 ```
 
-
-
 To see current context:
+
 ```
 kubectx -c
 ```
+
 ---
+
 ### **Kubens**:
 
 This tool allows users to switch between namespaces quickly with a simple command.
 
 **Installation**:
+
 ```
 sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
 sudo ln -s /opt/kubectx/kubens /usr/local/bin/kubens
 ```
+
 **Syntax**:
 
 To switch to a new namespace:
+
 ```
 kubens <new_namespace>
 ```
 
 To switch back to previous namespace:
+
 ```
 kubens -
 ```
+
 ---
+
 # Storage in Kubernetes
 
 ## Storge in Docker:
+
 - **Docker File system in host:**
+
   - by default docker stores data in host at
   - Images are stored in images folder
   - container data is stored in container folder
@@ -3022,25 +3122,25 @@ kubens -
   - each instruction in docker file has its own layer
   - If the some of the layers is already used by the some other docker file previously then docker will not create the same layer again it will reuse it
     - this will save Docker image build time
-    -  this will save Docker image size
- -  **type of layers in docker**
-    -  *Image layer*
-       -  This is a `readOnly` layer, where user cannot modify the containts of it.
-       -  if you want to modify let say application source code then docker will automatically creates the copy of it from the image layer to the container layer where you can be able to modify it.
-    -  *Container layer*
-       -  This layer can be modify `read-write` by the user
-       -  container layer is temp layer and only created when the container is created and deleted when the container is bing deleted.
-    -  Once the image is created its layers are been shared by other images too.
-    -  Once the container is deleted the data which is been changed also been deleted, to persists data we need to use the docker volmes.
+    - this will save Docker image size
+- **type of layers in docker**
+  - _Image layer_
+    - This is a `readOnly` layer, where user cannot modify the containts of it.
+    - if you want to modify let say application source code then docker will automatically creates the copy of it from the image layer to the container layer where you can be able to modify it.
+  - _Container layer_
+    - This layer can be modify `read-write` by the user
+    - container layer is temp layer and only created when the container is created and deleted when the container is bing deleted.
+  - Once the image is created its layers are been shared by other images too.
+  - Once the container is deleted the data which is been changed also been deleted, to persists data we need to use the docker volmes.
 - **Docker Volumes**
-  - *Volume Mount*
+  - _Volume Mount_
     - with volume mount you can mount the volume in host with inside the file directory in docker container
     - Even if the container gets deleted the data still remains inside the volume in the host.
       ```
       docker create volume volume1
       docker run -v volume1:/app myimage
       ```
-  - *Bind Mount*
+  - _Bind Mount_
     - Now suppose you want to mount a directory of host to the directory of container you can achive this with the help of Bind mount
       ```
       docker run -v /temp/app:/app myimage
@@ -3048,15 +3148,18 @@ kubens -
       ```
 - **Storage Drivers**
   - Docker automatically choose the Storage drive based on OS.
-  -  Docker supports multiple storage drivers
-     -  AUFS
-     -  ZFS
-     -  BTRFS
-     -  Device Mapper
-     -  Overlay
-     -  Overlay2
+  - Docker supports multiple storage drivers
+    - AUFS
+    - ZFS
+    - BTRFS
+    - Device Mapper
+    - Overlay
+    - Overlay2
+
 ---
+
 ## Docker Volumes
+
 - **Docker Volumes** are used to persist data even after the container is deleted.
 - You can use the Volume Drive to presist the data to AWS, GCP or Azure.
   - local
@@ -3071,9 +3174,101 @@ kubens -
   - this will provsion a AWS EBS to store the data from the Docker container volume to Cloud.
 
 ## Kubernetes interfaces standards for any container technology:
+
 - CRI - Container Runtime Interface
 - CNI - Container Network Interface
 - CSI - Container Storage Interface
 
 ## PersistantVolume (Refer above)
+
 ## PersistentVolumeClaim (Refer above)
+
+---
+
+# Networking in kubernetes
+
+## Network Namespace
+
+## Docker networking
+
+1. **None**
+   - Docker container inside the host connot talk to each other they are complely isolated from each other
+2. **Host**
+   - Docker container and host has no isolation, if the application running on port 80 for docker then it automatically run on port 80 of the host.
+3. **overlay**
+   - Overlay networks connect multiple Docker daemons together.
+4. **ipvlan**
+   - IPvlan networks provide full control over both IPv4 and IPv6 addressing.
+5. **macvlan**
+   - Assign a MAC address to a container.
+6. **User-defined networks**
+   - You can create custom, user-defined networks, and connect multiple containers to the same network. Once connected to a user-defined network, containers can communicate with each other using container IP addresses or container names.
+7. **Bridge**
+   - This is the default network in docker
+   - In terms of Docker, a bridge network uses a software bridge which lets containers connected to the same bridge network communicate, while providing isolation from containers that aren't connected to that bridge network.
+   - containers on different bridge networks can't communicate directly with each other.
+   - User-define bridge networks are `superior` to the default `bridge` network.
+     - User-defined bridges provide automatic DNS resolution between containers.
+   - `docker0` on the host is the docker `bridge` network
+   - Docker network is just a `network namespace` behind the scene
+   - while doing the port fowarding in docker from host to container, docker creates the routing table behind the scene
+
+```shell
+iptables \
+   -t nat \
+   -A PREROUTING \
+   -k DNAT \
+   --dport 8080 \
+   --to-destination 80
+```
+
+## Container Networking Interface (CNI)
+
+- CNI is a standard for networking in container orchestration systems like Kubernetes.
+- The Container Networking Interface (CNI) is a specification and framework for configuring networking in containerized environments. It is widely used in container orchestration systems, such as Kubernetes, to manage how containers communicate with each other, with services, and with external networks.
+  - CNI defines how network interfaces should be created, configured, and deleted for containers.
+  - It provides a standardized approach, ensuring that any CNI-compliant plugin can integrate seamlessly with a container runtime.
+
+### Example: CNI Workflow in Kubernetes
+
+**Pod Creation:**
+
+- Kubernetes requests the container runtime to create a pod.
+- The runtime calls the CNI plugin to configure the pod's network.
+
+**CNI Plugin Execution:**
+
+- The plugin allocates an IP address for the pod.
+- It sets up network routes, rules, and interfaces.
+
+**Networking Established:**
+
+- The pod is now part of the cluster's network, with routing to other pods and services.
+
+**Pod Deletion:**
+
+- The CNI plugin removes the network configuration and releases the IP address.
+
+### **Common CNI Plugins**
+
+1.  **Flannel**:
+
+    - Implements a simple overlay network.
+    - Often used for Kubernetes cluster networking.
+
+2.  **Calico**:
+
+    - Supports advanced networking policies.
+    - Provides Layer 3 networking without overlays for better performance.
+
+3.  **Weave Net**:
+
+    - Provides a simple-to-use network for Kubernetes and Docker clusters.
+
+4.  **Cilium**:
+
+    - Uses eBPF for high-performance and secure networking.
+
+5.  **Multus**:
+
+    - Enables attaching multiple CNI plugins to a single container.
