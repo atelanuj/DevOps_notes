@@ -79,6 +79,9 @@
 - kubectl create role `role_name` --verb=`list,create,delete` --resource=`pods`
 
 ---
+# Kubernetes archetrcutre:
+![Kubernetes archetrcutre](https://kubernetes.io/images/docs/components-of-kubernetes.svg)
+
 
 # [Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
 
