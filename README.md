@@ -77,6 +77,7 @@
 - kubectl describe rolebindings `rolebinding_name`
 - kubectl create rolebinding `rolebinding_name` --role=`role_name` --user=`user_name` --group=`group_name`
 - kubectl create role `role_name` --verb=`list,create,delete` --resource=`pods`
+- kubectl create ingress `ingress-test` --rule=`"wear.my-online-store.com/wear*=wear-service:80`
 
 ---
 # Kubernetes archetrcutre:
@@ -3329,3 +3330,155 @@ iptables \
 5.  **Multus**:
 
     - Enables attaching multiple CNI plugins to a single container.
+
+### Cluster Networking:
+- The network model is implemented by the container runtime on each node. The most common container runtimes use Container Network Interface (CNI)
+
+## Service Networking
+- Services are abstractions that expose a network service to other pods and services in the cluster.
+- Service is a clusterwide, it exists accross all nodes in the cluster but whitin a namespace.
+- it is not specific to a one node.
+- Service has its own IP address
+- When a pod tries to reach another pod it first reaches the service then routes to the pod.
+### Types of Services
+- **ClusterIP**: Internal service discovery within the cluster.
+- **NodePort**: Exposes a service on each node's IP address.
+- **LoadBalancer**: Uses a cloud provider's API to provsion a load balancer to expose a service.
+
+## DNS in k8s
+- Kubernetes uses DNS for service discovery.
+
+## Ingress
+### points
+- Ingress exposes HTTP and HTTPS routes from outside the cluster to `services` within the cluster. Traffic routing is controlled by rules defined on the Ingress resource.
+- An Ingress may be configured to give Services externally-reachable URLs, `load balance traffic`, `terminate SSL / TLS`, and offer `name-based virtual hosting`.
+- You may need to deploy an [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) such as `ingress-nginx`.
+- The name of an Ingress object must be a valid DNS subdomain name.
+- Ingress frequently uses `annotations` to configure some options depending on the Ingress controller, an example of which is the `rewrite-target` annotation.
+- If the ingressClassName is omitted, a default Ingress class should be defined.
+- 
+
+### Diagram
+![ingress](https://kubernetes.io/docs/images/ingress.svg)
+
+### Ingress Manifests
+
+**Path based Routing**
+```yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minimal-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx-example
+  rules:
+  - http:
+      paths:
+      - path: /testpath
+        pathType: Prefix
+        backend:
+          service:
+            name: test
+            port:
+              number: 80
+
+```
+
+```yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-wildcard-host
+spec:
+  rules:
+  - host: "foo.bar.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/bar"
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+  - host: "*.foo.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/foo"
+        backend:
+          service:
+            name: service2
+            port:
+              number: 80
+```
+**Host based Routing**
+```yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-wildcard-host
+spec:
+  rules:
+  - host: "foo.bar.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/bar"
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+  - host: "*.foo.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/foo"
+        backend:
+          service:
+            name: service2
+            port:
+              number: 80
+```
+### Simple fanout
+### Name based virtual hosting
+### TLS
+
+```yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: testsecret-tls
+  namespace: default
+data:
+  tls.crt: base64 encoded cert
+  tls.key: base64 encoded key
+type: kubernetes.io/tls
+```
+
+```yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tls-example-ingress
+spec:
+  tls:
+  - hosts:
+      - https-example.foo.com
+    secretName: testsecret-tls
+  rules:
+  - host: https-example.foo.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+```
+### Load balancing
