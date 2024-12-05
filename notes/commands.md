@@ -1,0 +1,82 @@
+# Kubernetes Important Commands
+
+- kubectl get `nodes`/`pods`/`services`/`deployments`/`replicasets`/`namespaces`
+- kubectl get all -o `wide`/`yaml`/`json`
+- kubectl get `events`
+- kubectl get `endpoints`
+- kubectl get pods --namespace=`dev`
+- Kubectl get pods -n `namespace`
+- kubectl get pods --namespace=`dev` --show-labels
+- kubectl config set-context --current --namespace=`namespace-name`
+- kubectl config set-context `context-name` --cluster=`new-cluster-name` --user=new-`user-name` --namespace=`new-namespace`
+- kubectl describe `pod`/`service`/`deployment`/`replicaset`/`role`/`rolebinding`
+- kubectl run `name` --image=`image` --command -- `cmd` `args1` `args2`
+- kubectl run `name` --image=`image` --dry-run=client -o yaml > `name`.yaml
+- kubectl run `name` --image=`image` -- `args1` ... `argsN` # default commands and custom arguments
+- kubectl replace --force -f `name`.yaml # replace
+- kubectl edit `pod`/`service`/`deployment`/`replicaset` `resource-name` # edit
+- kubectl set image deployment `deployment-name` `name`=`image-name`:`version`
+- kubectl delete pod `name`
+- kubectl delete pod `name` --grace-period=`0` --force # force delete
+- kubectl delete pod `name` --grace-period=`0` --force --namespace=`namespace`
+- kubectl delete pod `name` --grace-period=`0` --force --namespace=`namespace`
+- kubectl logs -f `pod`/`service`/`deployment`/`replicaset` # get logs
+- kubectl logs -f `pod` -c `container_name`
+- kubectl logs --tail=20 `pod-name`
+- kubectl logs --since=1h `pod-name`
+- Kubectl exec `pod_name` -it -c `container_name` -- /bin/bash # execute command into the pod or perticular container
+- kubectl create `pod`/`service`/`deployment`/`replicaset`/`namespace` -f `name`.yaml
+- kubectl create -f `name`.yaml
+- kubectl create -f `name`.yaml --record # record the history
+- kubectl create configmap `configmap-name` --from-literal=`key=value` --from-literal=`key2=value2`
+- kubectl create configmap `configmap-name` --from-file=`path-to-file`
+- kubectl create configmap `configmap-name` --from-file=`app.config.properties`
+- kubectl create secret generic `secret-name` --from-literal=`key`=`value`
+- kubectl create secret generic `secret-name` --from-literal=`key`=`value` --from-literal=`key1`=`value1`
+- kubectl create secret generic `secret-name` --from-file=`path-to-file`
+- kubectl create secret generic `app-secret` --from-file=`app-secret.properties`
+- kubectl apply -f `config1.yaml` -f `config2.yaml` # Applies multiple configuration files.
+- kubectl apply -f `https://url.com/config.yaml` # Applies a configuration from a URL.
+- kubectl scale deployment `deployment-name` --replicas=`5` -f `deploy.yml` --record # Scales a deployment to 5 replicas and records the change in the revision history.
+- kubectl scale replicaset `rs-name` --replicas=`3` -f `replica.yml`
+- kubectl rollout history deployment/`deployment-name` # Shows the history of deployments
+- kubectl rollout pause deployment/`deployment-name` # Pauses the rollout of a deployment
+- kubectl rollout resume deployment/`deployment-name` # Resumes a paused deployment rollout.
+- Kubectl rollout status deployment `deployment-name`
+- kubectl expose deployment `deployment-name` --port=80 --target-port=8080 # Exposes a deployment as a new service on port 80, targeting the container port 8080.
+- kubectl label pods `pod-name` `app=myapp`
+- kubectl label nodes `node-name` `disk=ssd`
+- kubectl patch deployment deployment-name -p `'{"spec":{"replicas":5}}'` # Updates the number of replicas for a deployment to 5.
+- kubectl patch service service-name -p `'{"spec":{"type":"LoadBalancer"}}'` # Updates the service type to LoadBalancer.
+- kubectl autoscale deployment `deployment-name` --min=2 --max=10 --cpu-percent=80 # Configures auto-scaling for a deployment based on CPU utilization.
+- kubectl autoscale replicaset `rs-name` --min=3 --max=6 --cpu-percent=70 # Configures auto-scaling for a ReplicaSet based on CPU utilization.
+- kubectl top `nodes` # Shows CPU and memory usage for nodes in the cluster.
+- kubectl top `pods` --containers # Shows CPU and memory usage for containers in pods.
+- kubectl drain `node-name` # Safely drains a node in preparation for maintenance.
+- kubectl drain `node-name` `--ignore-daemonsets` # Drains a node while ignoring DaemonSet pods.
+- kubectl taint nodes `node-name` key=value:NoSchedule
+- kubectl taint nodes `node-name` key=value:NoSchedule- # remove taint
+- kubectl taint nodes `node-name` key=value:NoExecute
+- kubectl taint nodes `node-name` key=value:NoExecute- # remove taint
+- kubectl cordon `node-name` # Marks a node as unschedulable, preventing new pods from being scheduled on it.
+- kubectl uncordon `node-name` # Marks a node as schedulable, allowing new pods to be scheduled on it.
+- kubectl cp `file.txt` `pod-name`:`/path/to/dir` # Copies a file from the local machine to a pod.
+- kubectl cp `pod-name`:`/path/to/file.log` `file.log` # Copies a file from a pod to the local machine.
+- `kubectl api-resources` | tail +2 | awk ' { print $1 }'`; do kubectl explain $kind; done | grep -e "KIND:" -e "VERSION:"
+- kubectl drain `node_name` # this will make the node unshedulable and make the pods spawn on other nodes
+- kubectl uncordon `node_name` # this will make the node schedulable
+- kubectl cordon `node_name` # this will make the node unschedulable
+- kubectl auth `can-i` create `deployment` ----> yes
+- kubectl auth `can-i` delete `nodes` ------> no
+- kubectl auth `can-i` create `deployment` --as `dev-user` ----> no
+- kubectl auth `can-i` create `pods` --as `dev-user` -----> yes
+- kubectl auth `can-i` create `pods` --as `dev-user` --namespace `test` ----> no
+- kubectl get `roles` to list all roles in the current namespace
+- kubectl get `rolebindings`
+- kubectl describe role `<role_name>`
+- kubectl describe rolebindings `rolebinding_name`
+- kubectl create rolebinding `rolebinding_name` --role=`role_name` --user=`user_name` --group=`group_name`
+- kubectl create role `role_name` --verb=`list,create,delete` --resource=`pods`
+- kubectl create ingress `ingress-test` --rule=`"wear.my-online-store.com/wear*=wear-service:80`
+
+---
