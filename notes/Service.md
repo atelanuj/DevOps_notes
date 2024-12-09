@@ -30,9 +30,9 @@ spec:
 
 - This default Service type assigns an IP address from a pool of IP addresses that your cluster has reserved for that purpose.
 
-![image]https://miro.medium.com/v2/resize:fit:4800/format:webp/1*dLlC4L2qpImyZS6gOntUjg.png
+![image](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*dLlC4L2qpImyZS6gOntUjg.png)
 
-![image]https://i.octopus.com/blog/2022-11/difference-clusterip-nodeport-loadbalancer-kubernetes/clusterip.png
+![image](https://i.octopus.com/blog/2022-11/difference-clusterip-nodeport-loadbalancer-kubernetes/clusterip.png)
 
 ## NodePort
 
@@ -56,7 +56,7 @@ spec:
       nodePort: 30007
 ```
 
-![image]https://i.octopus.com/blog/2022-11/difference-clusterip-nodeport-loadbalancer-kubernetes/nodeport.png
+![image](https://i.octopus.com/blog/2022-11/difference-clusterip-nodeport-loadbalancer-kubernetes/nodeport.png)
 
 ## LoadBalancer
 
@@ -78,4 +78,4 @@ spec:
       targetPort: 8080
 ```
 
-![image]https://i.octopus.com/blog/2022-11/difference-clusterip-nodeport-loadbalancer-kubernetes/loadbalancer.png
+![image](https://i.octopus.com/blog/2022-11/difference-clusterip-nodeport-loadbalancer-kubernetes/loadbalancer.png)
