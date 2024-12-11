@@ -243,3 +243,112 @@ REVISION    CHANGE-CAUSE
 2           kubectl set image deployment/nginx-deployment nginx=nginx:1.16.1
 3           kubectl set image deployment/nginx-deployment nginx=nginx:1.161
 ```
+
+- To see the details of each revision, run: `kubectl rollout history deployment/nginx-deployment --revision=2`
+
+```bash
+deployments "nginx-deployment" revision 2
+  Labels:       app=nginx
+          pod-template-hash=1159050644
+  Annotations:  kubernetes.io/change-cause=kubectl set image deployment/nginx-deployment nginx=nginx:1.16.1
+  Containers:
+   nginx:
+    Image:      nginx:1.16.1
+    Port:       80/TCP
+     QoS Tier:
+        cpu:      BestEffort
+        memory:   BestEffort
+    Environment Variables:      <none>
+  No volumes.
+```
+
+---
+
+### **Rolling Back to a Previous Revision**
+
+- `kubectl rollout undo deployment/nginx-deployment`
+- Alternatively, you can rollback to a specific revision by specifying it with `--to-revision`:
+
+```bash
+kubectl rollout undo deployment/nginx-deployment --to-revision=2
+```
+
+---
+
+## **Scaling a Deployment**
+
+- `kubectl scale deployment/nginx-deployment --replicas=10`
+
+---
+
+## **Pausing and Resuming a rollout of a Deployment**
+
+- Pause by running the following command: `kubectl rollout pause deployment/nginx-deployment`
+- Eventually, resume the Deployment rollout and observe a new ReplicaSet coming up with all the new updates: `kubectl rollout resume deployment/nginx-deployment`
+
+---
+
+## **Deployment status**
+
+- **Progressing Deployment**
+    - The Deployment creates a new `ReplicaSet`.
+    - The Deployment is scaling up its newest `ReplicaSet`.
+    - The Deployment is scaling down its older `ReplicaSet`(s).
+    - New Pods become ready or available (ready for at least [MinReadySeconds](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#min-ready-seconds)).
+- **Complete Deployment [](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#complete-deployment)**
+    - All of the replicas associated with the Deployment have been updated to the latest version you've specified, meaning any updates you've requested have been completed.
+    - All of the replicas associated with the Deployment are available.
+    - No old replicas for the Deployment are running.
+- **Failed Deployment**
+    - Insufficient quota
+    - Readiness probe failures
+    - Image pull errors
+    - Insufficient permissions
+    - Limit ranges
+    - Application runtime misconfiguration
+
+---
+
+## Deployment **Strategy**
+
+- **Recreate Deployment**
+    - All existing Pods are killed before new ones are created when `.spec.strategy.type==Recreate`
+- **Rolling Update Deployment**
+    - "**RollingUpdate**" is the default value
+    - The Deployment updates Pods in a rolling update fashion when `.spec.strategy.type==RollingUpdate`. You can specify `maxUnavailable` and `maxSurge` to control the rolling update process.
+    - **Max Unavailable**
+        - The default value is `25%`.
+        - optional field that specifies the maximum number of Pods that can be unavailable during the update process.
+    - **Max Surge**
+        - The default value is `25%.`
+        - optional field that specifies the maximum number of Pods that can be created over the desired number of Pods
+    - Example:
+    
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+     name: nginx-deployment
+     labels:
+       app: nginx
+    spec:
+     replicas: 3
+     selector:
+       matchLabels:
+         app: nginx
+     template:
+       metadata:
+         labels:
+           app: nginx
+       spec:
+         containers:
+         - name: nginx
+           image: nginx:1.14.2
+           ports:
+           - containerPort: 80
+     strategy:
+       type: RollingUpdate
+       rollingUpdate:
+         maxSurge: 1
+         maxUnavailable: 1
+    ```
