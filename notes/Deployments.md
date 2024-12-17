@@ -5,36 +5,40 @@
 - Deployments are essential for rolling out and rolling back applications to specific versions.
 - During a rollout, the old `ReplicaSet` scales to zero while a new `ReplicaSet` is created. During a rollback, the new `ReplicaSet` scales to zero while the old one becomes active.
 
+```bash
+kubectl create deployment <deployment-name> --image=<container-image>
+
+kubectl create deployment nginx-deployment --image=nginx --replicas=3
+
+kubectl create deployment nginx-deployment --image=nginx --dry-run=client -o yaml
+
+kubectl create deployment nginx-deployment --image=nginx --dry-run=client -o yaml > deployment.yaml
+```
+
  
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: apps/v1 # Specifies the API version for the Deployment object
+kind: Deployment # Declares that this manifest is for a Deployment
 metadata:
-	# name of the Deployment 
-  name: nginx-deployment
+  name: nginx-deployment # Name of the Deployment
   labels:
-    app: nginx
+    app: nginx # Labels for categorizing or filtering the Deployment
 spec:
-	# How many instances of pod do you want
-  replicas: 3
+  replicas: 3 # Number of desired pod instances
   selector:
-	  # this will monitor pod with below labels
     matchLabels:
-      app: nginx
-	# template to create PODs.
+      app: nginx # Label selector for identifying the pods managed by this Deployment
   template:
     metadata:
-	    # labels on pod level
       labels:
-        app: nginx
+        app: nginx # Labels to be applied to each pod created by this Deployment
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.14.2
+      - name: nginx # Name of the container
+        image: nginx:1.14.2 # Docker image to use for the container
         ports:
-        - containerPort: 80
-
+        - containerPort: 80 # Port on which the container listens for traffic
 ```
 
 ```bash
@@ -315,6 +319,7 @@ kubectl rollout undo deployment/nginx-deployment --to-revision=2
     - All existing Pods are killed before new ones are created when `.spec.strategy.type==Recreate`
 - **Rolling Update Deployment**
     - "**RollingUpdate**" is the default value
+    - Minimizes downtime as both versions may run simultaneously for a short period.
     - The Deployment updates Pods in a rolling update fashion when `.spec.strategy.type==RollingUpdate`. You can specify `maxUnavailable` and `maxSurge` to control the rolling update process.
     - **Max Unavailable**
         - The default value is `25%`.
@@ -352,3 +357,9 @@ kubectl rollout undo deployment/nginx-deployment --to-revision=2
          maxSurge: 1
          maxUnavailable: 1
     ```
+    
+- Key Considerations
+    - Use `RollingUpdate` for high availability services.
+    - Use `Recreate` for cases where you need a clean state or when compatibility issues prevent versions from coexisting.
+    - Tweak `maxUnavailable` and `maxSurge` to balance speed and reliability of updates.
+    - `Blue Green` and `canary` Deployment strategy is not supported by K8s. you can achieve this with the help of `ingress controller`.
