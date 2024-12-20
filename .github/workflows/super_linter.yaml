@@ -48,7 +48,7 @@ jobs:
             if: steps.changed-files.outputs.any_changed == 'true'
             continue-on-error: false
             with:
-              config: .github/config/.markdownlint-cli2.jsonc
+              config: 'config/.markdownlint-cli2.jsonc'
               globs: ${{ steps.changed-files.outputs.all_changed_files }}
               fix: true
               
