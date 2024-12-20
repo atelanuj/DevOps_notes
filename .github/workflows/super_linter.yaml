@@ -33,7 +33,7 @@ jobs:
             id: changed-files
             with:
               files: '**/*.md'
-              separator: ","
+              separator: ", "
 
           - name: List all changed files
             env:
