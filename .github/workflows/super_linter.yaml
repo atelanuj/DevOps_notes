@@ -11,7 +11,7 @@ on: # yamllint disable-line rule:truthy
 # permissions: {}
     
 jobs:
-    build:
+    Markdown_lint:
         name: Lint
         runs-on: ubuntu-latest
     
@@ -34,6 +34,14 @@ jobs:
             with:
               files: '**/*.md'
               separator: ","
+
+          - name: List all changed files
+            env:
+              ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+            run: |
+              for file in ${ALL_CHANGED_FILES}; do
+                echo "$file was changed"
+              done
 
           - name: Markdown_lint
             uses: DavidAnson/markdownlint-cli2-action@v18
