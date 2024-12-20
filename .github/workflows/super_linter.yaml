@@ -1,5 +1,5 @@
 ---
-name: Lint
+name: Super_Linter
     
 on: # yamllint disable-line rule:truthy
     push:
@@ -28,9 +28,24 @@ jobs:
               # super-linter needs the full git history to get the
               # list of files that changed across commits
               fetch-depth: 0
+
+          - uses: tj-actions/changed-files@v45
+            id: changed-files
+            with:
+              files: '**/*.md'
+              separator: ","
+
+          - name: Markdown_lint
+            uses: DavidAnson/markdownlint-cli2-action@v18
+            if: steps.changed-files.outputs.any_changed == 'true'
+            continue-on-error: false
+            with:
+              globs: ${{ steps.changed-files.outputs.all_changed_files }}
+              fix: true
+              
     
-          - name: Super-linter
-            uses: super-linter/super-linter@v7.2.1 # x-release-please-version
-            env:
-              # To report GitHub Actions status checks
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # - name: Super-linter
+          #   uses: super-linter/super-linter@v7.2.1 # x-release-please-version
+          #   env:
+          #     # To report GitHub Actions status checks
+          #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
