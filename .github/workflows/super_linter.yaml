@@ -10,7 +10,7 @@ on: # yamllint disable-line rule:truthy
     
 jobs:
     Markdown_lint:
-        name: Lint
+        name: Markdown_lint
         runs-on: ubuntu-latest
     
         permissions:
