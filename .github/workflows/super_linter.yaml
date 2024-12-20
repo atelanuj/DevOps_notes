@@ -3,9 +3,7 @@ name: Super_Linter
     
 on: # yamllint disable-line rule:truthy
     push:
-        branches:
-            - main 
-            - master
+        branches: [main, master]
     # pull_request: null
     
 # permissions: {}
@@ -51,8 +49,7 @@ jobs:
               config: 'config/.markdownlint-cli2.jsonc'
               globs: ${{ steps.changed-files.outputs.all_changed_files }}
               fix: true
-              
-    
+
           # - name: Super-linter
           #   uses: super-linter/super-linter@v7.2.1 # x-release-please-version
           #   env:
