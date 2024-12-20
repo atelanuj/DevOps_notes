@@ -173,4 +173,3 @@ status:
     - To use **Pods**, **Object**, or **External**, you need a custom metrics adapter (e.g., Prometheus Adapter).
 - **Multiple Metrics**:
     - You can combine different metric types in the `metrics` list, and HPA will use the one that requires the most scaling action.
-    - 
