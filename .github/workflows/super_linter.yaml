@@ -48,6 +48,7 @@ jobs:
             if: steps.changed-files.outputs.any_changed == 'true'
             continue-on-error: false
             with:
+              config: .github/config/MD_lint_config.yml
               globs: ${{ steps.changed-files.outputs.all_changed_files }}
               fix: true
               
