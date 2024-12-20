@@ -150,11 +150,7 @@ metadata:
   resourceVersion: ""
   selfLink: ""
 ```
-
-## 
-
 ## Custom ControlLoop
 
 ## OLM (Operator LifeCycle Manager)
 
-##
