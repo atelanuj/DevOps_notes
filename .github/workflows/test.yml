@@ -18,6 +18,7 @@ on:
           description: 'Environment to run tests against'
           type: environment
           required: true
+          default: 'DEV'
   
 jobs:
     log-the-inputs:
