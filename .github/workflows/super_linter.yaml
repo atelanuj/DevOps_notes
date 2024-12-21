@@ -53,6 +53,8 @@ jobs:
     Super_Lint:
         name: Super_Lint
         runs-on: ubuntu-latest
+        needs:
+          - Markdown_lint
         steps:
           - name: Super-linter
             uses: super-linter/super-linter@v7.2.1 # x-release-please-version
