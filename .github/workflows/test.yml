@@ -23,6 +23,7 @@ on:
             - Dev
             - Prod
             - UAT
+            - non-prod
   
 jobs:
     log-the-inputs:
