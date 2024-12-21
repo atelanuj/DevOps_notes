@@ -17,9 +17,12 @@ on:
           type: boolean
         environment:
           description: 'Environment to run tests against'
-          type: environment
+          type: choice
           required: true
-          default: 'DEV'
+          options:
+            - Dev
+            - Prod
+            - UAT
   
 jobs:
     log-the-inputs:
