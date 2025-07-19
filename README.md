@@ -20,6 +20,7 @@
 - kubectl delete pod `name` --grace-period=`0` --force # force delete
 - kubectl delete pod `name` --grace-period=`0` --force --namespace=`namespace`
 - kubectl delete pod `name` --grace-period=`0` --force --namespace=`namespace`
+- kubectl delete all -n `namespace` --all
 - kubectl logs -f `pod`/`service`/`deployment`/`replicaset` # get logs
 - kubectl logs -f `pod` -c `container_name`
 - kubectl logs --tail=20 `pod-name`
