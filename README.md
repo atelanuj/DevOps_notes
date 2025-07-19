@@ -632,6 +632,27 @@ To remove the taint from the node:
 
 `kubectl taint nodes node1 key1=value1:NoSchedule-`
 
+Example:
+```shell
+kubectl taint nodes desktop-control-plane node.kubernetes.io/unreachable:NoSchedule-
+```
+
+```
+Name:               desktop-control-plane
+Roles:              control-plane
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=desktop-control-plane
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=
+Annotations:        kubeadm.alpha.kubernetes.io/cri-socket: unix:///run/containerd/containerd.sock
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Sat, 19 Jul 2025 19:19:30 +0530
+Taints:             node.kubernetes.io/unreachable:NoSchedule
+```
+
 ```
 kubectl taint nodes node1 key1=value1:NoSchedule
 kubectl taint nodes node1 key1=value1:NoExecute
