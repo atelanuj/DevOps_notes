@@ -124,13 +124,13 @@ spec:
    # template  defines the PodSpec for the new pods being created and what Labels it contains
    template:
       metadata:
-      name: testpod
-      labels:
-          tier: front-end
+          name: testpod
+          labels:
+              tier: front-end
       spec:
-      containers:
-      - name: c00
-          image: nginx:latest
+          containers:
+          - name: c00
+              image: nginx:latest
 ```
 
 ---
