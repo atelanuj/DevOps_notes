@@ -119,7 +119,7 @@ spec:
    # the Selector selects the pod with specific labels
    selector:
       matchLabels:
-      tier: front-end
+          tier: front-end
 
    # template  defines the PodSpec for the new pods being created and what Labels it contains
    template:
