@@ -119,18 +119,18 @@ spec:
    # the Selector selects the pod with specific labels
    selector:
       matchLabels:
-          tier: front-end
+      tier: front-end
 
    # template  defines the PodSpec for the new pods being created and what Labels it contains
    template:
       metadata:
-          name: testpod
-          labels:
-              tier: front-end
+      name: testpod
+      labels:
+          tier: front-end
       spec:
-          containers:
-          - name: c00
-              image: nginx:latest
+      containers:
+      - name: c00
+          image: nginx:latest
 ```
 
 ---
@@ -551,6 +551,30 @@ spec:
       storage: 5Gi
   storageClassName: ebs-sc
 ```
+- **Provisioner**
+  - This is the specific plugin or driver that handles the creation logic.
+
+    Examples: kubernetes.io/aws-ebs, kubernetes.io/gce-pd, or CSI drivers like ebs.csi.aws.com.
+
+- **Parameters**
+  - These are key-value pairs passed directly to the underlying storage provider. Kubernetes itself doesn't   "understand" them; it just forwards them.
+
+    Examples: Disk type (gp2 vs io1), replication factor, file system type (ext4 vs xfs).
+
+- **ReclaimPolicy**
+  - Determines what happens to the underlying physical disk when the user deletes their PVC.
+  
+  - **Delete** (Default): The physical disk (e.g., AWS EBS volume) is destroyed. Data is lost.
+
+  - **Retain**: The PV object is released, but the physical disk remains. An admin must manually delete it or recover the data.
+
+- **VolumeBindingMode**
+  - This controls when the volume is actually created.
+
+  - Immediate (Default): The volume is created as soon as the PVC is created, even if no Pod is using it yet. This can be bad for multi-zone clusters (e.g., the volume gets created in Zone A, but the Pod gets scheduled in Zone B).
+
+ - **WaitForFirstConsumer**: 
+   - The volume creation is delayed until a Pod actually tries to use the PVC. This ensures the volume is created in the same zone where the Pod is scheduled.
 
 **Workflow**:
 
@@ -632,27 +656,6 @@ To Apply the Taint on the Node
 To remove the taint from the node:
 
 `kubectl taint nodes node1 key1=value1:NoSchedule-`
-
-Example:
-```shell
-kubectl taint nodes desktop-control-plane node.kubernetes.io/unreachable:NoSchedule-
-```
-
-```
-Name:               desktop-control-plane
-Roles:              control-plane
-Labels:             beta.kubernetes.io/arch=amd64
-                    beta.kubernetes.io/os=linux
-                    kubernetes.io/arch=amd64
-                    kubernetes.io/hostname=desktop-control-plane
-                    kubernetes.io/os=linux
-                    node-role.kubernetes.io/control-plane=
-Annotations:        kubeadm.alpha.kubernetes.io/cri-socket: unix:///run/containerd/containerd.sock
-                    node.alpha.kubernetes.io/ttl: 0
-                    volumes.kubernetes.io/controller-managed-attach-detach: true
-CreationTimestamp:  Sat, 19 Jul 2025 19:19:30 +0530
-Taints:             node.kubernetes.io/unreachable:NoSchedule
-```
 
 ```
 kubectl taint nodes node1 key1=value1:NoSchedule
@@ -1199,6 +1202,10 @@ These Plugins are pluged to **Extention points**
 
 # [Logging and Monitoring the Kubernetes Components:](https://kubernetes.io/docs/tasks/debug/)
 
+- Kubernetes uses a `meteric Server` which connects with `kubelet` present on every node to gather metrics
+- `Metric Server` stores the data `in-memory` for historical data you need more advance monitoring solutions.
+- `kubelet` uses a subcomponent `cAdvisor` (Container Advisor) to fetch the performance metrics to `metrics server`
+
 ## Monitoring The k8s Cluster
 
 - `Metric Server` is available on each node to gather logs.
@@ -1206,7 +1213,7 @@ These Plugins are pluged to **Extention points**
 - for Others to deploy **metric server**
   - `git clone https://github.com/kubernetes-incubator/metrics-server.git`
   - `kubectl create -f deploy/1.8+/`
-  - `kubectl top node` to view resource consumption of cluster.
+  - `kubectl top node` to view resource (cpu and Memory) consumption of each node of cluster.
 
 ```
 controlplane kubernetes-metrics-server on  master ➜  kubectl top node
@@ -1227,8 +1234,8 @@ rabbit     102m         14Mi
 
 ## Logging in K8s
 
-- to view logs of a pod
-  - `kubectl logs <pod-name>`
+- to view logs of a pod LIVE `-f`
+  - `kubectl logs -f <pod-name>`
 - to view logs of a pod in a specific container
   - `kubectl logs <pod-name> -c <container-name>`
 - to view logs of a pod in a specific container and follow the logs
@@ -1914,7 +1921,7 @@ kubectl drain controlplane --force --ignore-daemonsets # when the pod is present
 ```
 
 - with drain you can **empty** node and make the node **unschedulable**
-- after the pathing is done you can make the node normal by making it uncorden.
+- after the pathing is done you can make the node normal by making it **uncorden**.
 
 **Command**
 
@@ -1922,7 +1929,7 @@ kubectl drain controlplane --force --ignore-daemonsets # when the pod is present
 kubectl uncordon `node_name`
 ```
 
-- this will make the node schedulable. and the new pods will be spawned when the pods on the other node will be terminated or crashed.
+- this will make the node **schedulable**. and the new pods will be spawned when the pods on the other node will be terminated or crashed.
 
 **Command**
 
@@ -1930,7 +1937,7 @@ kubectl uncordon `node_name`
 kubectl cordon 'node_name'
 ```
 
-- This will cordon the node means this make the node unshedulable, But the pods which are already presnet on the node will not be evicted.
+- This will cordon the node means this make the node **unshedulable**, But the pods which are already presnet on the node will not be evicted.
 - **Taints** offer more granular control compared to cordoning
 
 ## Cluster Upgrade Process
@@ -1956,9 +1963,15 @@ kubectl cordon 'node_name'
     - as the master is still upgrading the new pods on the Worker nodes will not be created as a part of `replicaSet`
   - upgrading all node at once this will have a downtime
 - **Strategy-2**
-  - Upgarding the master node fist this will not give downtime as the pods in the nodes are still serving the traffi
+  - Upgarding the master node fist this will not give downtime as the pods in the nodes are still serving the traffic
     - as the master is still upgrading the new pods on the Worker nodes will not be created as a part of `replicaSet`
   - Upgarding the node one by one, when a node is been taken down for upgrade the pods on the node will be creted on the different node which is running.
+![alt text](image-24.png)
+- **Strategy-3**
+  - Upgrade the Master first
+  - add new updated versions nodes (i.e 1.11v)
+  - remove the old versioned nodes (i.e 1.10v) and the pods on them will be trasfered to the new nodes (i.e 1.11v)
+![alt text](image-23.png)
 
 ---
 
