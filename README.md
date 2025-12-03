@@ -554,12 +554,12 @@ spec:
 - **Provisioner**
   - This is the specific plugin or driver that handles the creation logic.
 
-    Examples: kubernetes.io/aws-ebs, kubernetes.io/gce-pd, or CSI drivers like ebs.csi.aws.com.
+    Examples: `kubernetes.io/aws-ebs, kubernetes.io/gce-pd, or CSI drivers like ebs.csi.aws.com`.
 
 - **Parameters**
   - These are key-value pairs passed directly to the underlying storage provider. Kubernetes itself doesn't   "understand" them; it just forwards them.
 
-    Examples: Disk type (gp2 vs io1), replication factor, file system type (ext4 vs xfs).
+    Examples: `Disk type (gp2 vs io1), replication factor, file system type (ext4 vs xfs)`.
 
 - **ReclaimPolicy**
   - Determines what happens to the underlying physical disk when the user deletes their PVC.
