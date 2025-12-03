@@ -2077,6 +2077,8 @@ All communication between varius master components are secure using the `TLS cer
 you can restricthe the communication between pods with `network policies`
 
 ## User Authentication in k8s cluster
+[Youtube Vedio for Refrence](https://youtu.be/jvhKOAyD8S8?t=267)
+[Readme.md](https://github.com/marcel-dempers/docker-development-youtube-series/blob/master/kubernetes/rbac/README.md#kubernetes-ca-certificate)
 
 - To Create a user in Kubernetes you need to create a `User.crt` and `User.key` and add it in the Kubernetes `Kubeconfig` file
 - `User.crt` file must be signed by Kubernetes `CA authority`.
