@@ -2283,6 +2283,8 @@ docker cp rbac-control-plane:/etc/kubernetes/pki/ca.crt ca.crt
 docker cp rbac-control-plane:/etc/kubernetes/pki/ca.key ca.key
 ```
 
+### Creating the user in kubernetes cluster
+
 - As mentioned before, Kubernetes has no concept of users, it trusts certificates that is signed by its CA.
   This allows a lot of flexibility as Kubernetes lets you bring your own auth mechanisms, such as [OpenID](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens) Connect or OAuth.
 - First thing we need to do is create a certificate signed by our Kubernetes CA.
