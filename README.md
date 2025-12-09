@@ -1111,6 +1111,9 @@ kube-system    **my-scheduler**                           1/1     Running   0   
 ### PriorityClass
 
 - you can set the priority of pod tobe scheduled
+- To ensure critical workloads get resources before less important ones
+- To allow Kubernetes to evict lower-priority Pods if needed to make space for high-priority ones
+- To manage scheduling order during resource contention
 
 ```yml
 ---
