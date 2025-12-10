@@ -10,8 +10,8 @@ spec:
  containers:
  - name: c00
    image: ubuntu:latest
- env:
- - name: MYNAME  #key: 
-   value: Anuj   #value:
- - name: SERNAME
-   value: Atel
+   env:
+   - name: MYNAME  #key: 
+     value: Anuj   #value:
+   - name: SERNAME
+     value: Atel
