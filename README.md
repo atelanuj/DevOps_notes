@@ -3525,3 +3525,78 @@ spec:
 ```
 
 ### Load balancing
+
+# LivenessProbe/ReadinessProbe
+
+## 🫀 **Liveness Probe**
+
+> Checks if the application is still alive inside the container.
+> 
+
+If this probe fails → **Kubernetes restarts the container**.
+
+Used when the app is **stuck, deadlocked, or crashed**.
+
+**Example:**
+
+“Is the app running at all?”
+
+---
+
+## 🚦 **Readiness Probe**
+
+> Checks if the application is ready to receive traffic.
+> 
+
+If this probe fails → **Kubernetes stops sending traffic** to the pod
+
+(but **does NOT restart it**).
+
+Used during:
+
+- startup
+- heavy load
+- temporary failure (DB down, cache warming, etc.)
+
+**Liveness = "Should I restart you?"**
+
+**Readiness = "Should I send traffic to you?"**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: myorg/myapp:1.0
+        ports:
+        - containerPort: 8080
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+
+```
