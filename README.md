@@ -80,6 +80,7 @@
 - kubectl create role `role_name` --verb=`list,create,delete` --resource=`pods`
 - kubectl create ingress `ingress-test` --rule=`"wear.my-online-store.com/wear*=wear-service:80`
 - kubectl port-forward -n <servive_name> service/vote 5000:5000 --address=0.0.0.0 &
+- kubectl config set-context --current --namespace=`awx`
 
 ---
 # Kubernetes archetrcutre:
