@@ -14,7 +14,7 @@
 - kubectl run `name` --image=`image` --dry-run=client -o yaml > `name`.yaml
 - kubectl run `name` --image=`image` -- `args1` ... `argsN` # default commands and custom arguments
 - kubectl replace --force -f `name`.yaml # replace
-- kubectl edit `pod`/`service`/`deployment`/`replicaset` `resource-name` # edit
+- kubectl edit `pod`/`service`/`deployment`/`replicaset` resource-name # edit
 - kubectl set image deployment `deployment-name` `name`=`image-name`:`version`
 - kubectl delete pod `name`
 - kubectl delete pod `name` --grace-period=`0` --force # force delete
